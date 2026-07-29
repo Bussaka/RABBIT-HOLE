@@ -1,0 +1,1612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RABBIT HOLE — 30 Minute Deep Dives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RABBIT HOLE — design tokens
+   ============================================================ */
+:root{
+  --stark:#0b0b0b;
+  --paper:#f9f9f9;
+  --lava:#ff4d00;
+  --lava-glow:#ff7a33;
+  --ink-60: rgba(11,11,11,.62);
+  --ink-35: rgba(11,11,11,.35);
+  --ink-12: rgba(11,11,11,.12);
+  --paper-60: rgba(249,249,249,.64);
+  --paper-35: rgba(249,249,249,.35);
+  --paper-12: rgba(249,249,249,.14);
+  --display: "Archivo Black", Impact, sans-serif;
+  --body: "Inter", -apple-system, sans-serif;
+  --mono: "Space Mono", monospace;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--body);
+  background:var(--stark);
+  color:var(--paper);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{ background:var(--lava); color:var(--paper); }
+a{ color:inherit; }
+button{ font-family:inherit; cursor:pointer; }
+input,textarea{ font-family:inherit; }
+
+.container{ max-width:1180px; margin:0 auto; padding:0 32px; }
+
+.eyebrow{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  color:var(--lava);
+  display:flex; align-items:center; gap:10px;
+}
+.eyebrow::before{
+  content:""; width:7px; height:7px; border-radius:50%;
+  background:var(--lava); box-shadow:0 0 12px 2px var(--lava-glow);
+  flex:none;
+}
+
+h1,h2,h3{ font-family:var(--display); text-transform:uppercase; line-height:.98; letter-spacing:-.01em; }
+
+.divider{ height:1px; width:100%; background:var(--ink-12); }
+.light-section .divider{ background:var(--ink-12); }
+.dark-section .divider{ background:var(--paper-12); }
+
+.btn{
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  padding:15px 26px;
+  border:1px solid currentColor;
+  background:transparent;
+  display:inline-flex; align-items:center; gap:10px;
+  transition:transform .18s ease, background .18s ease, color .18s ease;
+  white-space:nowrap;
+}
+.btn:hover{ transform:translateY(-2px); }
+.btn:active{ transform:translateY(0); }
+.btn:focus-visible{ outline:2px solid var(--lava); outline-offset:3px; }
+
+.btn-primary{ background:var(--lava); border-color:var(--lava); color:var(--stark); font-weight:700;}
+.btn-primary:hover{ background:var(--lava-glow); border-color:var(--lava-glow); }
+
+.btn-ghost-dark{ color:var(--paper); border-color:var(--paper-35); }
+.btn-ghost-dark:hover{ border-color:var(--paper); }
+
+.btn-ghost-light{ color:var(--stark); border-color:var(--ink-35); }
+.btn-ghost-light:hover{ border-color:var(--stark); }
+
+.btn:disabled{ opacity:.35; cursor:not-allowed; transform:none; }
+
+.tag{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em;
+  padding:6px 12px; border:1px solid currentColor; text-transform:uppercase;
+  display:inline-block;
+}
+
+/* ============================================================
+   Layout scaffolding
+   ============================================================ */
+#app{ min-height:100vh; display:flex; flex-direction:column; }
+
+.topnav{
+  position:sticky; top:0; z-index:50;
+  background:var(--stark);
+  border-bottom:1px solid var(--paper-12);
+}
+.topnav-inner{
+  max-width:1180px; margin:0 auto; padding:20px 32px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.wordmark{
+  font-family:var(--display); font-size:18px; letter-spacing:.02em;
+  display:flex; align-items:baseline; gap:2px;
+}
+.wordmark .dot{ color:var(--lava); }
+.nav-right{ display:flex; align-items:center; }
+.navlinks{ display:flex; gap:4px; align-items:center; }
+.navlink{
+  font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  padding:9px 16px; background:none; border:1px solid transparent; color:var(--paper-60);
+  transition:color .15s ease, border-color .15s ease;
+}
+.navlink:hover{ color:var(--paper); }
+.navlink.is-active{ color:var(--stark); background:var(--paper); }
+
+.profile-pill{
+  display:flex; align-items:center; gap:8px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  background:none; border:1px solid var(--paper-35); color:var(--paper);
+  padding:9px 14px; margin-left:8px; max-width:180px;
+}
+.profile-pill:hover{ border-color:var(--lava); color:var(--lava); }
+.profile-pill .pp-dot{ width:6px; height:6px; border-radius:50%; background:var(--lava); flex:none; box-shadow:0 0 8px 1px var(--lava-glow); }
+#profilePillName{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* ---------- footer ---------- */
+.site-footer{ border-top:1px solid var(--paper-12); background:var(--stark); }
+.footer-inner{
+  padding:20px 32px; display:flex; flex-wrap:wrap; gap:8px 22px; align-items:center;
+  font-family:var(--mono); font-size:11px; letter-spacing:.04em; color:var(--paper-35);
+}
+.footer-inner strong{ color:var(--paper-60); font-weight:700; }
+.footer-storage{ margin-left:auto; }
+@media (max-width:700px){ .footer-storage{ margin-left:0; } }
+
+/* ---------- profile modal ---------- */
+.profile-modal{
+  position:fixed; inset:0; background:rgba(11,11,11,.82); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; padding:5vh 24px; z-index:200; overflow:auto;
+}
+.profile-modal.is-open{ display:flex; }
+.profile-modal-panel{
+  background:var(--paper); color:var(--stark); width:100%; max-width:480px;
+  padding:40px; display:flex; flex-direction:column; gap:22px;
+}
+.pm-head h3{ font-size:30px; margin-top:10px; }
+.pm-sub{ font-size:13px; color:var(--ink-60); line-height:1.55; margin-top:8px; }
+.profile-list{ display:flex; flex-direction:column; gap:1px; max-height:220px; overflow:auto; }
+.profile-row{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:13px 4px; border-bottom:1px solid var(--ink-12); cursor:pointer;
+}
+.profile-row:hover{ background:#f1f1ee; }
+.profile-row .pr-name{ font-family:var(--body); font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px; }
+.profile-row .pr-name .pr-active-dot{ width:6px; height:6px; border-radius:50%; background:var(--lava); }
+.profile-row .pr-meta{ font-family:var(--mono); font-size:10.5px; color:var(--ink-35); }
+.profile-row .pr-del{
+  font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+  background:none; border:1px solid var(--ink-12); padding:6px 9px; color:var(--ink-60);
+}
+.profile-row .pr-del:hover{ border-color:var(--lava); color:var(--lava); }
+.pm-empty{ font-family:var(--mono); font-size:11px; color:var(--ink-35); padding:10px 0; }
+.pm-create{ display:flex; flex-direction:column; gap:12px; }
+.pm-create-row{ display:flex; gap:10px; }
+.pm-input{ flex:1; }
+.pm-create-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+main{ flex:1; }
+.view{ display:none; animation:viewIn .35s ease; }
+.view.is-active{ display:block; }
+@keyframes viewIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+.dark-section{ background:var(--stark); color:var(--paper); }
+.light-section{ background:var(--paper); color:var(--stark); }
+
+/* ============================================================
+   VIEW: ROLL (hero)
+   ============================================================ */
+#view-roll .hero{
+  min-height:calc(100vh - 73px);
+  display:grid; grid-template-columns:1.05fr .95fr; align-items:center; gap:40px;
+  padding:64px 0;
+}
+#view-roll .hero-copy{ display:flex; flex-direction:column; gap:26px; }
+#view-roll h1{ font-size:clamp(46px, 6vw, 84px); }
+#view-roll h1 span{ color:var(--lava); }
+#view-roll .lede{ font-size:16px; color:var(--paper-60); max-width:46ch; line-height:1.6; }
+.roll-actions{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+.roll-hint{ font-family:var(--mono); font-size:11px; color:var(--paper-35); letter-spacing:.08em; }
+
+.spiral-wrap{ position:relative; aspect-ratio:1/1; display:flex; align-items:center; justify-content:center; }
+#spiralSvg{ width:100%; height:100%; max-width:460px; transition:transform .6s cubic-bezier(.2,.8,.2,1); }
+#spiralSvg.spinning{ animation:spiralSpin .9s cubic-bezier(.5,0,.2,1); }
+@keyframes spiralSpin{
+  0%{ transform:rotate(0deg) scale(1); }
+  70%{ transform:rotate(300deg) scale(.86); }
+  100%{ transform:rotate(340deg) scale(.4); opacity:0; }
+}
+.spiral-path{ fill:none; stroke:var(--paper-35); stroke-width:1; }
+.spiral-dot{ fill:var(--lava); filter:drop-shadow(0 0 6px var(--lava-glow)); }
+.spiral-dot.pulse{ animation:dotPulse 2.4s ease-in-out infinite; }
+@keyframes dotPulse{ 0%,100%{ opacity:.55; } 50%{ opacity:1; } }
+
+/* ============================================================
+   VIEW: CARD (topic reveal)
+   ============================================================ */
+#view-card .card-shell{ min-height:calc(100vh - 73px); display:flex; align-items:center; padding:64px 0; }
+.topic-card{ width:100%; display:grid; gap:22px; }
+.topic-card .tag{ width:fit-content; color:var(--lava); border-color:var(--lava); }
+.topic-card h2{ font-size:clamp(34px, 5vw, 60px); max-width:20ch; }
+.topic-hook{ font-size:19px; line-height:1.55; color:var(--ink-60); max-width:56ch; }
+.jump-offs{ display:grid; gap:12px; margin-top:6px; }
+.jump-offs-label{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-35); }
+.jump-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; }
+.jump-link{
+  border:1px solid var(--ink-12); padding:14px 16px; display:flex; flex-direction:column; gap:4px;
+  transition:border-color .15s ease, transform .15s ease;
+}
+.jump-link:hover{ border-color:var(--stark); transform:translateY(-2px); }
+.jump-link .jl-name{ font-family:var(--mono); font-size:12px; letter-spacing:.06em; text-transform:uppercase; font-weight:700; }
+.jump-link .jl-desc{ font-size:11px; color:var(--ink-35); }
+.card-actions{ display:flex; gap:14px; margin-top:14px; flex-wrap:wrap; }
+
+/* ============================================================
+   VIEW: SPRINT (timer + notes)
+   ============================================================ */
+.anti-ai-banner{
+  background:var(--lava); color:var(--stark); font-family:var(--mono);
+  font-size:12px; letter-spacing:.04em; padding:12px 32px; text-align:center; font-weight:700;
+}
+#view-sprint .sprint-wrap{
+  min-height:calc(100vh - 73px - 44px);
+  display:grid; grid-template-columns:.85fr 1.15fr;
+}
+.sprint-left{ padding:48px 40px; border-right:1px solid var(--paper-12); display:flex; flex-direction:column; gap:34px; }
+.sprint-right{ padding:48px 40px; display:flex; flex-direction:column; gap:22px; }
+
+.timer-block{ display:flex; flex-direction:column; align-items:center; gap:20px; }
+.timer-ring-wrap{ position:relative; width:220px; height:220px; }
+.timer-ring-wrap svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.ring-track{ fill:none; stroke:var(--paper-12); stroke-width:3; }
+.ring-progress{ fill:none; stroke:var(--lava); stroke-width:3; stroke-linecap:round; transition:stroke-dashoffset .3s linear; filter:drop-shadow(0 0 6px var(--lava-glow));}
+.timer-digits{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:38px; font-weight:700; letter-spacing:.02em;
+}
+.timer-controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.timer-state{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--paper-35); text-transform:uppercase; }
+
+.sprint-topic{ display:flex; flex-direction:column; gap:10px; }
+.sprint-topic .tag{ width:fit-content; color:var(--lava); border-color:var(--lava); }
+.sprint-topic h3{ font-size:22px; }
+.sprint-topic p{ font-size:14px; color:var(--paper-60); line-height:1.55; }
+
+.mini-links{ display:flex; flex-wrap:wrap; gap:8px; }
+.mini-link{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  border:1px solid var(--paper-35); padding:8px 12px; color:var(--paper);
+}
+.mini-link:hover{ border-color:var(--lava); color:var(--lava); }
+
+.field-label{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--paper-35); display:block; margin-bottom:8px; }
+.field{
+  width:100%; background:transparent; border:1px solid var(--paper-12); color:var(--paper);
+  padding:12px 14px; font-size:14px; line-height:1.5; resize:vertical;
+}
+.field:focus{ outline:none; border-color:var(--lava); }
+.field::placeholder{ color:var(--paper-35); }
+.field-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+.notes-toolbar{ display:flex; align-items:center; justify-content:space-between; }
+.notes-toolbar .field-label{ margin:0; }
+.toolbar-actions{ display:flex; gap:8px; }
+.toolbar-actions button{
+  font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase;
+  background:none; border:1px solid var(--paper-35); color:var(--paper); padding:7px 11px;
+}
+.toolbar-actions button:hover{ border-color:var(--lava); color:var(--lava); }
+.toolbar-actions button.is-on{ background:var(--paper); color:var(--stark); border-color:var(--paper); }
+
+#notesFreeform{ min-height:200px; }
+#notesPreview{
+  min-height:200px; border:1px solid var(--paper-12); padding:12px 14px; font-size:14px; line-height:1.6;
+  color:var(--paper-60); display:none; overflow:auto;
+}
+#notesPreview.is-active{ display:block; }
+#notesFreeform.is-hidden{ display:none; }
+#notesPreview h1,#notesPreview h2,#notesPreview h3{ font-family:var(--body); text-transform:none; font-weight:700; margin:.6em 0 .3em; }
+#notesPreview strong{ color:var(--paper); }
+#notesPreview ul{ padding-left:1.2em; }
+#notesPreview a{ color:var(--lava); }
+
+.saved-flag{ font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--paper-35); text-transform:uppercase; }
+.saved-flag.on{ color:var(--lava-glow); }
+
+.finish-row{ display:flex; gap:12px; margin-top:6px; flex-wrap:wrap; }
+
+/* ============================================================
+   VIEW: VAULT
+   ============================================================ */
+#view-vault .vault-wrap{ min-height:calc(100vh - 73px); padding:64px 0 100px; }
+.vault-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:36px; }
+.vault-head h2{ font-size:clamp(30px,4vw,46px); }
+.vault-eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--lava); margin-bottom:8px; text-transform:uppercase; }
+.vault-search{
+  border:1px solid var(--ink-12); padding:13px 16px; font-size:13px; min-width:280px;
+  background:transparent; color:var(--stark);
+}
+.vault-search:focus{ outline:none; border-color:var(--stark); }
+.vault-search::placeholder{ color:var(--ink-35); }
+
+.vault-empty{ padding:60px 0; text-align:center; color:var(--ink-35); font-family:var(--mono); font-size:13px; letter-spacing:.06em; }
+
+.vault-list{ display:grid; gap:1px; background:var(--ink-12); border:1px solid var(--ink-12); }
+.vault-item{ background:var(--paper); padding:22px 24px; display:grid; grid-template-columns:auto 1fr auto auto; gap:22px; align-items:center; cursor:pointer; transition:background .15s ease;}
+.vault-item:hover{ background:#f1f1ee; }
+.vault-item .tag{ color:var(--lava); border-color:var(--lava); font-size:10px; }
+.vi-title{ font-family:var(--body); font-weight:700; font-size:15px; }
+.vi-meta{ font-family:var(--mono); font-size:11px; color:var(--ink-35); display:flex; gap:14px; white-space:nowrap; }
+.vi-del{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; background:none; border:1px solid var(--ink-12); padding:8px 12px; color:var(--ink-60); }
+.vi-del:hover{ border-color:var(--lava); color:var(--lava); }
+
+.vault-detail{ position:fixed; inset:0; background:rgba(11,11,11,.72); backdrop-filter:blur(2px); display:none; align-items:flex-start; justify-content:center; padding:6vh 24px; z-index:100; overflow:auto; }
+.vault-detail.is-open{ display:flex; }
+.vault-detail-panel{ background:var(--paper); color:var(--stark); max-width:760px; width:100%; padding:44px; display:flex; flex-direction:column; gap:20px; }
+.vd-close{ align-self:flex-end; font-family:var(--mono); font-size:11px; letter-spacing:.1em; background:none; border:1px solid var(--ink-12); padding:8px 14px; color:var(--stark); }
+.vd-close:hover{ border-color:var(--stark); }
+.vd-title{ font-size:clamp(24px,3.4vw,36px); }
+.vd-meta{ font-family:var(--mono); font-size:11px; color:var(--ink-35); }
+.vd-block{ display:flex; flex-direction:column; gap:6px; }
+.vd-label{ font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-35); }
+.vd-text{ font-size:14px; line-height:1.65; color:var(--ink-60); white-space:pre-wrap; }
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 900px){
+  #view-roll .hero{ grid-template-columns:1fr; padding:44px 0; }
+  .spiral-wrap{ order:-1; max-width:280px; margin:0 auto; }
+  .jump-grid{ grid-template-columns:1fr 1fr; }
+  #view-sprint .sprint-wrap{ grid-template-columns:1fr; }
+  .sprint-left{ border-right:none; border-bottom:1px solid var(--paper-12); }
+  .field-row{ grid-template-columns:1fr; }
+  .vault-item{ grid-template-columns:1fr; gap:10px; }
+  .navlinks{ display:none; }
+  .container{ padding:0 20px; }
+}
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <nav class="topnav">
+    <div class="topnav-inner">
+      <div class="wordmark">RABBIT&nbsp;HOLE<span class="dot">.</span></div>
+      <div class="nav-right">
+        <div class="navlinks">
+          <button class="navlink" data-nav="roll">Roll</button>
+          <button class="navlink" data-nav="vault">Vault</button>
+        </div>
+        <button class="profile-pill" id="profilePillBtn">
+          <span class="pp-dot"></span><span id="profilePillName">Profile</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============ VIEW: ROLL ============ -->
+    <section id="view-roll" class="view is-active dark-section">
+      <div class="container hero">
+        <div class="hero-copy">
+          <div class="eyebrow">30 Minutes · Zero AI · One Obsession</div>
+          <h1>Fall down a<br><span>rabbit hole.</span></h1>
+          <p class="lede">Spin up a wildly specific, slightly obsessive topic — then go dig it up yourself. Primary sources only. No summaries, no shortcuts.</p>
+          <div class="roll-actions">
+            <button class="btn btn-primary" id="rollBtn">Spin Rabbit Hole</button>
+            <span class="roll-hint" id="topicCount"></span>
+          </div>
+        </div>
+        <div class="spiral-wrap">
+          <svg id="spiralSvg" viewBox="0 0 460 460"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: CARD ============ -->
+    <section id="view-card" class="view light-section">
+      <div class="container card-shell">
+        <div class="topic-card">
+          <span class="tag" id="cardCategory">CATEGORY</span>
+          <h2 id="cardTitle">Topic title</h2>
+          <p class="topic-hook" id="cardHook">Hook text.</p>
+          <div class="divider"></div>
+          <div class="jump-offs">
+            <div class="jump-offs-label">Jump-off points — no AI summaries</div>
+            <div class="jump-grid" id="jumpGrid"></div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-primary" id="startResearchBtn">Start Research</button>
+            <button class="btn btn-ghost-light" id="rollAgainBtn">Roll Again</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: SPRINT ============ -->
+    <section id="view-sprint" class="view dark-section">
+      <div class="anti-ai-banner">Unplug from AI — dig into primary sources, Google Scholar, and real research papers.</div>
+      <div class="sprint-wrap">
+        <div class="sprint-left">
+          <div class="timer-block">
+            <div class="timer-ring-wrap">
+              <svg viewBox="0 0 220 220">
+                <circle class="ring-track" cx="110" cy="110" r="100"></circle>
+                <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="100"></circle>
+              </svg>
+              <div class="timer-digits" id="timerDigits">30:00</div>
+            </div>
+            <div class="timer-state" id="timerState">Ready</div>
+            <div class="timer-controls">
+              <button class="btn btn-ghost-dark" id="timerPauseBtn">Pause</button>
+              <button class="btn btn-ghost-dark" id="timerResetBtn">Reset</button>
+              <button class="btn btn-primary" id="timerFinishBtn">Finish Early</button>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div class="sprint-topic">
+            <span class="tag" id="sprintCategory">CATEGORY</span>
+            <h3 id="sprintTitle">Topic title</h3>
+            <p id="sprintHook">Hook text.</p>
+            <div class="mini-links" id="sprintLinks"></div>
+          </div>
+        </div>
+
+        <div class="sprint-right">
+          <div class="field-row">
+            <div>
+              <label class="field-label" for="fieldTakeaway">Key Takeaway</label>
+              <textarea class="field" id="fieldTakeaway" rows="3" placeholder="The one idea worth keeping…"></textarea>
+            </div>
+            <div>
+              <label class="field-label" for="fieldFact">Coolest Fact to Share on a Date / at a Party</label>
+              <textarea class="field" id="fieldFact" rows="3" placeholder="The line that gets a reaction…"></textarea>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="fieldSources">Sources Found</label>
+            <textarea class="field" id="fieldSources" rows="2" placeholder="Paste titles, authors, or links…"></textarea>
+          </div>
+          <div>
+            <div class="notes-toolbar">
+              <label class="field-label" for="notesFreeform">Lab Notes (Markdown)</label>
+              <div class="toolbar-actions">
+                <button id="toggleWriteBtn" class="is-on" type="button">Write</button>
+                <button id="togglePreviewBtn" type="button">Preview</button>
+                <button id="copyMdBtn" type="button">Copy MD</button>
+                <button id="downloadMdBtn" type="button">Download .md</button>
+              </div>
+            </div>
+            <textarea class="field" id="notesFreeform" placeholder="# Notes&#10;Write freely. **Bold**, *italic*, [links](https://), - lists and # headers all render in Preview."></textarea>
+            <div id="notesPreview"></div>
+          </div>
+          <div class="finish-row">
+            <span class="saved-flag" id="savedFlag">Auto-saved</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: VAULT ============ -->
+    <section id="view-vault" class="view light-section">
+      <div class="container vault-wrap">
+        <div class="vault-head">
+          <div>
+            <div class="vault-eyebrow" id="vaultProfileLabel">PROFILE</div>
+            <h2>My Lore.</h2>
+          </div>
+          <input class="vault-search" id="vaultSearch" type="text" placeholder="Search topics, categories, notes…">
+        </div>
+        <div id="vaultListWrap"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>© <span id="footerYear"></span> RABBIT HOLE.</span>
+      <span>Built by <strong>Emmanuel Busaka</strong>.</span>
+      <span class="footer-storage">Stored locally in this browser — no data leaves your device.</span>
+    </div>
+  </footer>
+</div>
+
+<div class="vault-detail" id="vaultDetail">
+  <div class="vault-detail-panel" id="vaultDetailPanel"></div>
+</div>
+
+<div class="profile-modal" id="profileModal">
+  <div class="profile-modal-panel">
+    <div class="pm-head">
+      <div class="eyebrow">Your Lore, Your Name</div>
+      <h3>Who's digging?</h3>
+      <p class="pm-sub">Every profile keeps its own private vault of research sessions, saved right here in this browser.</p>
+    </div>
+
+    <div id="profileList" class="profile-list"></div>
+
+    <div class="divider"></div>
+
+    <div class="pm-create">
+      <label class="field-label" for="newProfileInput">New profile name</label>
+      <div class="pm-create-row">
+        <input class="field pm-input" id="newProfileInput" type="text" maxlength="28" placeholder="e.g. GILDED MAGPIE">
+        <button class="btn btn-ghost-light" id="shuffleNameBtn" type="button" title="Suggest a name">Shuffle</button>
+      </div>
+      <div class="pm-create-actions">
+        <button class="btn btn-primary" id="createProfileBtn" type="button">Create &amp; Enter</button>
+        <button class="btn btn-ghost-light" id="closeProfileModalBtn" type="button">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   RABBIT HOLE — data
+   ============================================================ */
+const TOPICS = [
+  {cat:"Psychology & Connection", t:"The Pratfall Effect", h:"Why a competent person becomes more likable the moment they trip, spill, or fumble in front of you."},
+  {cat:"Psychology & Connection", t:"Pareidolia & the Face-Finding Brain", h:"Why a wall socket, a car grille, and a piece of toast keep looking back at you."},
+  {cat:"Psychology & Connection", t:"Dark Triad vs. Light Triad", h:"The personality science that maps manipulators on one end and genuine humanists on the other."},
+  {cat:"Psychology & Connection", t:"Micro-Expressions on First Dates", h:"The 200-millisecond facial tells that leak the truth before words catch up."},
+  {cat:"Psychology & Connection", t:"The Ben Franklin Effect", h:"Why asking someone for a small favor makes them like you more, not less."},
+  {cat:"Psychology & Connection", t:"The IKEA Effect", h:"Why we irrationally overvalue furniture, ideas, and relationships we had to assemble ourselves."},
+  {cat:"Psychology & Connection", t:"The Baader-Meinhof Phenomenon", h:"Why the word you just learned suddenly seems to appear everywhere."},
+  {cat:"Psychology & Connection", t:"The Spotlight Effect", h:"Why you think everyone noticed your bad haircut, and why they really didn't."},
+  {cat:"Psychology & Connection", t:"The Zeigarnik Effect", h:"Why an unfinished task nags at your memory louder than a finished one."},
+  {cat:"Psychology & Connection", t:"Choice Overload", h:"Why more dating app profiles or menu options make you less happy with what you pick."},
+  {cat:"Psychology & Connection", t:"The Halo Effect", h:"Why we assume attractive people are also smarter, kinder, and more trustworthy."},
+  {cat:"Psychology & Connection", t:"The Mere-Exposure Effect", h:"Why familiarity alone, with no other reason, makes us like someone or something more."},
+  {cat:"Psychology & Connection", t:"Duchenne vs. Fake Smiles", h:"The eye-muscle tell that separates a genuine smile from a performed one."},
+  {cat:"Psychology & Connection", t:"The Bystander Effect", h:"Why a crowd of witnesses makes each individual less likely to help."},
+  {cat:"Psychology & Connection", t:"Cognitive Dissonance in Everyday Life", h:"Why we quietly rewrite our own beliefs to match actions we can't take back."},
+  {cat:"Psychology & Connection", t:"The Chameleon Effect", h:"The unconscious mimicry that happens when two people click."},
+  {cat:"Psychology & Connection", t:"Loss Aversion", h:"Why losing $20 hurts roughly twice as much as finding $20 feels good."},
+  {cat:"Psychology & Connection", t:"The Sunk Cost Fallacy in Relationships", h:"Why 'I've already invested three years' keeps people in situations they'd otherwise leave."},
+  {cat:"Psychology & Connection", t:"The Peak-End Rule", h:"Why you judge an entire vacation, meal, or relationship almost entirely by its best moment and its ending."},
+  {cat:"Psychology & Connection", t:"Anchoring Bias", h:"Why the first number you hear quietly controls every negotiation that follows."},
+  {cat:"Psychology & Connection", t:"The Barnum Effect", h:"Why vague horoscope-style statements feel eerily personal to almost everyone."},
+  {cat:"Psychology & Connection", t:"The Rejection-Then-Retreat Technique", h:"The persuasion tactic where a big 'no' makes a smaller ask feel reasonable."},
+  {cat:"Psychology & Connection", t:"Emotional Contagion", h:"How you can 'catch' a stranger's mood without either of you saying a word."},
+  {cat:"Psychology & Connection", t:"The Curse of Knowledge", h:"Why experts struggle to explain things simply — they can't remember not knowing."},
+  {cat:"Psychology & Connection", t:"The Foot-in-the-Door Technique", h:"Why agreeing to something tiny makes you far more likely to agree to something big later."},
+  {cat:"Psychology & Connection", t:"The Overjustification Effect", h:"Why paying someone for a hobby they loved for free can kill their motivation."},
+  {cat:"Psychology & Connection", t:"The Dunning-Kruger Curve", h:"Why the least skilled people are often the most confident in a room."},
+  {cat:"Psychology & Connection", t:"Proxemics & Personal Space", h:"The invisible bubble of distance that shifts by culture, relationship, and mood."},
+  {cat:"Psychology & Connection", t:"The Ringelmann Effect", h:"Why people quietly stop trying as hard the bigger the group gets."},
+  {cat:"Psychology & Connection", t:"Attachment Styles in Adult Relationships", h:"How an infant's bond with a caregiver predicts how they'll fight with a partner decades later."},
+  {cat:"Psychology & Connection", t:"The Endowment Effect", h:"Why you'll sell your mug for $5 but wouldn't pay $2 to buy the exact same one."},
+  {cat:"Psychology & Connection", t:"The Fundamental Attribution Error", h:"Why you blame their character for their mistake and traffic for yours."},
+  {cat:"Psychology & Connection", t:"The Confirmation Bias Loop", h:"Why two people can read the same article and both feel more certain they were right."},
+  {cat:"Psychology & Connection", t:"The Rubber Hand Illusion", h:"The experiment that convinces your brain a fake hand belongs to your body."},
+  {cat:"Psychology & Connection", t:"Emotional Granularity", h:"Why people who can name 'wistful' instead of just 'sad' cope with hard days better."},
+  {cat:"Psychology & Connection", t:"The Contrast Effect", h:"Why a mediocre option looks great right after a terrible one."},
+  {cat:"Psychology & Connection", t:"The Recency Illusion", h:"Why every generation is convinced slang, rudeness, or crime is new."},
+  {cat:"Psychology & Connection", t:"The Backfire Effect", h:"Why showing someone hard evidence can make them believe their original claim more strongly."},
+  {cat:"Psychology & Connection", t:"The Cocktail Party Effect", h:"How your brain can pick your name out of a room full of overlapping conversations."},
+  {cat:"Psychology & Connection", t:"Social Proof & the Laughter Track", h:"Why canned laughter makes an unfunny joke land better."},
+  {cat:"Psychology & Connection", t:"The Paradox of Choice", h:"Why a wall of 24 jam flavors sells worse than a table of 6."},
+  {cat:"Psychology & Connection", t:"The Just-World Hypothesis", h:"The comforting, often false belief that bad things only happen to people who deserve them."},
+  {cat:"Psychology & Connection", t:"The Google Effect (Digital Amnesia)", h:"Why we remember where to find information instead of the information itself."},
+  {cat:"Psychology & Connection", t:"Interoception", h:"The lesser-known sixth sense that lets you feel your own heartbeat and hunger."},
+  {cat:"Psychology & Connection", t:"The Illusion of Explanatory Depth", h:"Why you're sure you understand how a zipper works — until asked to explain it."},
+  {cat:"Psychology & Connection", t:"Terror Management Theory", h:"How subconscious awareness of death quietly shapes everyday decisions, from politics to perfume."},
+  {cat:"Psychology & Connection", t:"The Pygmalion Effect", h:"How simply expecting more from someone can measurably make them perform better."},
+  {cat:"Psychology & Connection", t:"The Reminiscence Bump", h:"Why most of your strongest memories cluster between ages 15 and 25."},
+  {cat:"Psychology & Connection", t:"Deindividuation", h:"Why ordinary people do things in a crowd or costume they'd never do alone."},
+  {cat:"Psychology & Connection", t:"The Negativity Bias", h:"Why one harsh comment outweighs ten compliments in your memory."},
+  {cat:"Psychology & Connection", t:"The Illusory Truth Effect", h:"Why repeating a false claim, even to debunk it, makes people more likely to believe it."},
+  {cat:"Psychology & Connection", t:"The Uncanny Almost-Smile", h:"Why a smile that doesn't reach the eyes registers as unsettling before you consciously notice why."},
+  {cat:"Psychology & Connection", t:"Hedonic Adaptation", h:"Why the raise, the new car, and the new relationship all quietly become 'the new normal.'"},
+  {cat:"Psychology & Connection", t:"The Diderot Effect", h:"How one new purchase can spiral into replacing everything around it to match."},
+  {cat:"Psychology & Connection", t:"Empathic Accuracy", h:"The measurable skill of correctly guessing what someone else is thinking or feeling."},
+  {cat:"Psychology & Connection", t:"The Availability Heuristic", h:"Why plane crashes feel more likely than car crashes, despite the math saying otherwise."},
+  {cat:"Psychology & Connection", t:"Interpersonal Synchrony", h:"Why couples who unconsciously mirror each other's posture report feeling closer."},
+  {cat:"Psychology & Connection", t:"The Placebo Effect on Confidence", h:"How a fake 'power pose' or sugar pill can produce real, measurable changes in behavior."},
+  {cat:"Psychology & Connection", t:"The Google Maps Effect on Memory", h:"How GPS use is quietly reshaping the hippocampus's role in spatial memory."},
+  {cat:"Psychology & Connection", t:"Nostalgia as a Psychological Resource", h:"Why researchers now treat wistful longing as a mood-regulation tool, not just sentimentality."},
+  {cat:"Psychology & Connection", t:"The Third-Person Effect", h:"Why people assume advertising and propaganda affect everyone else more than themselves."},
+  {cat:"Psychology & Connection", t:"Codependency vs. Healthy Interdependence", h:"The blurry line between deep partnership and losing yourself in someone else."},
+  {cat:"Psychology & Connection", t:"The Psychology of Ghosting", h:"What the sudden silence does to the brain's threat-detection system."},
+  {cat:"Psychology & Connection", t:"Love Bombing", h:"The early-relationship warning sign that feels, in the moment, like the best thing that's ever happened to you."},
+  {cat:"Psychology & Connection", t:"The Prisoner's Dilemma in Real Relationships", h:"How a classic game theory puzzle plays out in trust, betrayal, and forgiveness."},
+  {cat:"Psychology & Connection", t:"Parasocial Relationships", h:"Why you can feel genuine grief over a podcast host or celebrity you've never met."},
+  {cat:"Psychology & Connection", t:"The Psychology of Inside Jokes", h:"Why a joke only two people understand builds intimacy faster than shared interests."},
+  {cat:"Psychology & Connection", t:"Emotional Bids & the 'Turning Toward' Ratio", h:"The tiny daily moments researchers say predict divorce with startling accuracy."},
+  {cat:"Psychology & Connection", t:"The Spotlight of First Impressions", h:"How the first seven seconds of meeting someone shape the next seven months."},
+  {cat:"Psychology & Connection", t:"The Psychology of Regret", h:"Why we regret inaction far more than action, decades after the fact."},
+  {cat:"Psychology & Connection", t:"The Self-Serving Bias", h:"Why you take credit for the win and blame the referee for the loss."},
+  {cat:"Psychology & Connection", t:"The Contagious Yawn", h:"What yawning in response to someone else reveals about empathy circuitry in the brain."},
+  {cat:"Psychology & Connection", t:"The Psychology of Waiting in Line", h:"Why an unexplained wait feels three times longer than an explained one."},
+  {cat:"Psychology & Connection", t:"Cognitive Load and Decision Fatigue", h:"Why judges grant parole more often right after lunch than right before it."},
+  {cat:"Psychology & Connection", t:"The Butterfly Effect of a Compliment", h:"How one specific, well-timed compliment can alter someone's self-concept for years."},
+  {cat:"Psychology & Connection", t:"The Psychology of Secrets", h:"Why keeping a secret is physically and mentally more taxing than most people realize."},
+  {cat:"Psychology & Connection", t:"The Third Wheel Effect", h:"The social dynamics that quietly shift the moment a couple becomes a trio."},
+  {cat:"Psychology & Connection", t:"Trait Jealousy vs. State Jealousy", h:"Why some jealousy is a personality trait and some is just a situational spike."},
+  {cat:"Psychology & Connection", t:"The Psychology of 'Type'", h:"Why people keep unconsciously dating the same personality in different bodies."},
+  {cat:"Psychology & Connection", t:"Vulnerability as a Trust Signal", h:"Why sharing something slightly embarrassing early on builds connection faster than a resume of achievements."},
+  {cat:"Psychology & Connection", t:"The Overview Effect", h:"The profound shift in perspective astronauts report after seeing Earth from space."},
+  {cat:"Psychology & Connection", t:"The Psychology of Small Talk", h:"Why 'How was your weekend?' is doing more relational work than it seems."},
+  {cat:"Psychology & Connection", t:"Reciprocity and the Free Sample", h:"The evolutionary wiring behind why a tiny gift creates a felt obligation to give back."},
+  {cat:"Psychology & Connection", t:"The Psychology of Apology", h:"Why 'I'm sorry you feel that way' fails and 'I was wrong' works."},
+  {cat:"Psychology & Connection", t:"The Ikigai Framework", h:"The Japanese concept mapping the overlap of what you love, what you're good at, and what the world needs."},
+  {cat:"Psychology & Connection", t:"Solitude vs. Loneliness", h:"The surprising psychological difference between choosing to be alone and feeling isolated."},
+  {cat:"Psychology & Connection", t:"The Psychology of Nostalgia in Advertising", h:"Why brands keep resurrecting jingles and fonts from your childhood."},
+  {cat:"Psychology & Connection", t:"The Reactance Effect", h:"Why telling someone 'you can't have this' makes them want it more."},
+  {cat:"Psychology & Connection", t:"The Psychology of First Names", h:"How simply using someone's name in conversation measurably increases likability."},
+  {cat:"Psychology & Connection", t:"The Chemistry of Eye Contact", h:"Why sustained eye contact between strangers can trigger measurable feelings of attraction."},
+  {cat:"Psychology & Connection", t:"The Psychology of Playlists", h:"What the songs someone shares with you reveal about how they see the relationship."},
+  {cat:"Psychology & Connection", t:"Cognitive Empathy vs. Emotional Empathy", h:"The difference between understanding someone's feelings and actually feeling them."},
+  {cat:"Psychology & Connection", t:"The Psychology of Small Rituals", h:"Why couples with tiny recurring rituals report higher relationship satisfaction."},
+  {cat:"Psychology & Connection", t:"The Spotlight on Awkward Silence", h:"Why three seconds of silence in conversation feels unbearable, and how long it actually is."},
+  {cat:"Psychology & Connection", t:"The Psychology of Handwriting Notes", h:"Why a handwritten note reads as more sincere than an identical typed one."},
+  {cat:"Psychology & Connection", t:"The Novelty Bias in Long-Term Relationships", h:"Why couples who keep trying new activities together report staying more 'in love.'"},
+  {cat:"Psychology & Connection", t:"The Psychology of Apologetic Laughter", h:"Why people laugh nervously right after saying something true and uncomfortable."},
+  {cat:"Psychology & Connection", t:"The Psychology of Comfort Objects in Adulthood", h:"Why grown adults still keep a specific hoodie, mug, or blanket tied to emotional regulation."},
+  {cat:"Psychology & Connection", t:"The Spacing Effect", h:"Why studying something five times over two weeks beats cramming it five times in one night."},
+  {cat:"Psychology & Connection", t:"The Psychology of Voice Memos", h:"Why hearing someone's actual voice triggers different emotional processing than reading their words."},
+  {cat:"Wild History & Lore", t:"The 1904 Olympic Marathon Chaos", h:"Rat poison, a ten-mile car ride, and a shot of brandy — the strangest race in Olympic history."},
+  {cat:"Wild History & Lore", t:"Perfume & Olfactory Memory", h:"Why a single scent can teleport you back to a specific afternoon two decades ago."},
+  {cat:"Wild History & Lore", t:"Obscure Renaissance Secret Codes", h:"The ciphers Renaissance diplomats hid in plain sight — and the ones still unbroken."},
+  {cat:"Wild History & Lore", t:"The Dancing Plague of 1518", h:"A French town where hundreds danced uncontrollably for days, some until they died."},
+  {cat:"Wild History & Lore", t:"The Great Emu War", h:"The time the Australian military deployed machine guns against birds — and lost."},
+  {cat:"Wild History & Lore", t:"The Radium Girls", h:"The glow-in-the-dark factory tragedy that quietly rewrote labor law forever."},
+  {cat:"Wild History & Lore", t:"The Cadaver Synod", h:"The medieval trial where a dead pope was exhumed, dressed, and put on trial."},
+  {cat:"Wild History & Lore", t:"The Tulip Mania Bubble", h:"The 17th-century Dutch craze that turned a single flower bulb into a house-sized investment."},
+  {cat:"Wild History & Lore", t:"The Man Who Sold the Eiffel Tower", h:"The con artist who convinced scrap dealers he was legally selling it for parts — twice."},
+  {cat:"Wild History & Lore", t:"The Vegetable Lamb of Tartary", h:"The medieval myth of a plant that grew live sheep instead of fruit."},
+  {cat:"Wild History & Lore", t:"The Great Molasses Flood of 1919", h:"A burst tank sent a 15-foot wave of molasses through Boston at 35 miles per hour."},
+  {cat:"Wild History & Lore", t:"The Wow! Signal", h:"The 72-second radio burst from space in 1977 that's never been explained or repeated."},
+  {cat:"Wild History & Lore", t:"The Voynich Manuscript's Illustrations", h:"The impossible botanical drawings inside a 15th-century book written in an unknown script."},
+  {cat:"Wild History & Lore", t:"The Baby Cage", h:"The 1930s parenting device that literally hung infants outside apartment windows in wire cages."},
+  {cat:"Wild History & Lore", t:"The Great Stork Derby", h:"A Toronto lawyer's will that sparked a decade-long baby-making race for inheritance money."},
+  {cat:"Wild History & Lore", t:"The Phantom Time Hypothesis", h:"The fringe theory claiming nearly 300 years of the Middle Ages were fabricated."},
+  {cat:"Wild History & Lore", t:"The Trial of the Century You've Never Heard Of", h:"The 19th-century pig that was formally tried and executed for murder."},
+  {cat:"Wild History & Lore", t:"The Dyatlov Pass Incident", h:"Nine experienced hikers, an abandoned tent cut open from the inside, and no clear explanation."},
+  {cat:"Wild History & Lore", t:"The Georgia Guidestones", h:"The granite monument with instructions for rebuilding civilization — blown up by persons unknown in 2022."},
+  {cat:"Wild History & Lore", t:"Operation Mincemeat", h:"The WWII plan that fooled Nazi Germany using a corpse, fake documents, and a briefcase."},
+  {cat:"Wild History & Lore", t:"The Antikythera Mechanism", h:"The 2,000-year-old bronze device that computed astronomical positions centuries ahead of its time."},
+  {cat:"Wild History & Lore", t:"The Dog That Nearly Started a War", h:"The 1925 sled-dog relay that raced diphtheria serum 674 miles across Alaska."},
+  {cat:"Wild History & Lore", t:"The Christmas Truce of 1914", h:"The unofficial ceasefire where enemy soldiers played football in no-man's-land."},
+  {cat:"Wild History & Lore", t:"The Lead-Up to the Emu War's Sequel", h:"Australia's lesser-known cane toad invasion, an ecological disaster of its own making."},
+  {cat:"Wild History & Lore", t:"The Kensington Runestone", h:"The 19th-century Minnesota stone claiming Vikings reached America — real artifact or elaborate hoax?"},
+  {cat:"Wild History & Lore", t:"The Beast of Gévaudan", h:"The 18th-century French wolf-like creature blamed for over 100 deaths."},
+  {cat:"Wild History & Lore", t:"Napoleon's Attack by Rabbits", h:"The staged rabbit hunt that turned into a genuine ambush of the emperor himself."},
+  {cat:"Wild History & Lore", t:"The Phantom Fleet of the Great Lakes", h:"The ghost ship legends of Lake Michigan's still-unexplained disappearances."},
+  {cat:"Wild History & Lore", t:"The Man in the Iron Mask", h:"The mysterious 17th-century French prisoner whose true identity was never revealed."},
+  {cat:"Wild History & Lore", t:"The Berners Street Hoax", h:"The 1810 prank that sent thousands of unsolicited deliveries to one London address in a single day."},
+  {cat:"Wild History & Lore", t:"The Icelandic Book Flood (Jólabókaflóð)", h:"The Christmas Eve tradition of gifting books that dates back to WWII paper shortages."},
+  {cat:"Wild History & Lore", t:"The Toba Catastrophe Theory", h:"The supervolcano eruption theorized to have nearly wiped out early humans 74,000 years ago."},
+  {cat:"Wild History & Lore", t:"The Library of Ashurbanipal", h:"The world's oldest known library, buried and preserved by the fire that destroyed it."},
+  {cat:"Wild History & Lore", t:"The Mystery of the Mary Celeste", h:"The fully provisioned ship found adrift with no crew and no clear explanation."},
+  {cat:"Wild History & Lore", t:"The Siege of the Alcázar's Radio Legend", h:"The Spanish Civil War standoff broadcast live and mythologized within weeks."},
+  {cat:"Wild History & Lore", t:"The Pig War of 1859", h:"The international border dispute triggered entirely by the shooting of one pig."},
+  {cat:"Wild History & Lore", t:"The Kensington of Codebreaking: Bletchley Park's Pigeons", h:"The unlikely role carrier pigeons played in WWII cryptography."},
+  {cat:"Wild History & Lore", t:"The Winchester Mystery House", h:"The sprawling, staircase-to-nowhere mansion built for 38 years by a widow following a medium's advice."},
+  {cat:"Wild History & Lore", t:"The Emperor Norton", h:"The San Francisco man who declared himself Emperor of the United States — and was humored by the whole city."},
+  {cat:"Wild History & Lore", t:"The Fox Sisters", h:"The teenage girls whose fake spirit-rapping act launched the entire Spiritualist movement."},
+  {cat:"Wild History & Lore", t:"The Defenestrations of Prague", h:"The oddly recurring Czech tradition of resolving political disputes by throwing people out of windows."},
+  {cat:"Wild History & Lore", t:"The Great London Beer Flood", h:"The 1814 industrial accident that released over 320,000 gallons of beer into the streets."},
+  {cat:"Wild History & Lore", t:"The Roman Concrete Mystery", h:"Why 2,000-year-old harbor concrete is getting stronger with age while modern concrete crumbles."},
+  {cat:"Wild History & Lore", t:"The Anastasia Impostors", h:"The dozens of women who spent decades claiming to be the surviving Romanov princess."},
+  {cat:"Wild History & Lore", t:"The Philadelphia Experiment", h:"The persistent WWII legend claiming the Navy teleported a battleship using electromagnetic fields."},
+  {cat:"Wild History & Lore", t:"The Sea Peoples", h:"The mysterious raiders who helped collapse Bronze Age civilizations — and whose origin is still debated."},
+  {cat:"Wild History & Lore", t:"The Long Depression's Forgotten Panic", h:"The 1873 financial collapse that lasted longer than the Great Depression but is barely remembered."},
+  {cat:"Wild History & Lore", t:"The Turnip Winter", h:"The WWI famine so severe that Germans ate turnips prepared 1,000 different ways just to survive."},
+  {cat:"Wild History & Lore", t:"The Bone Wars", h:"The bitter, sabotage-filled rivalry between two paleontologists that shaped modern dinosaur science."},
+  {cat:"Wild History & Lore", t:"The Dover Demon", h:"A single 1977 sighting in Massachusetts that spawned one of America's most enduring cryptid legends."},
+  {cat:"Wild History & Lore", t:"The Codex Gigas ('Devil's Bible')", h:"The largest medieval manuscript in existence, supposedly written in one night by a monk in a pact with the devil."},
+  {cat:"Wild History & Lore", t:"The Halifax Explosion", h:"The largest man-made explosion before nuclear weapons, triggered by a ship collision in 1917."},
+  {cat:"Wild History & Lore", t:"The Vanishing of Louis Le Prince", h:"The inventor who filmed the first motion picture ever — then disappeared from a train, never to be found."},
+  {cat:"Wild History & Lore", t:"The Star Wars Kid Before the Internet", h:"How pre-digital 'viral' moments spread through chain letters, radio, and word of mouth."},
+  {cat:"Wild History & Lore", t:"Prester John", h:"The medieval legend of a Christian king in the East that European rulers searched for over 400 years."},
+  {cat:"Wild History & Lore", t:"The Codebreaking Nuns of WWII", h:"The convent that secretly aided Allied cryptography efforts under Nazi occupation."},
+  {cat:"Wild History & Lore", t:"The Kensington of Sound: The 26-Second Recording", h:"The earliest known recording of the human voice, made a decade before Edison's phonograph."},
+  {cat:"Wild History & Lore", t:"The Assassination That Wasn't", h:"Grigori Rasputin's death, and how much of the poisoning legend was later fabrication."},
+  {cat:"Wild History & Lore", t:"The Skeleton Lake of Roopkund", h:"The Himalayan lake ringed with hundreds of unexplained human skeletons."},
+  {cat:"Wild History & Lore", t:"The Dozier School Discoveries", h:"How ground-penetrating radar uncovered a hidden history at a defunct reform school decades later."},
+  {cat:"Wild History & Lore", t:"The Codified Chaos of the French Republican Calendar", h:"The 12-year attempt to replace weeks, months, and even the clock with units of ten."},
+  {cat:"Wild History & Lore", t:"The Tunguska Event", h:"The 1908 explosion that flattened 800 square miles of Siberian forest with no confirmed cause."},
+  {cat:"Wild History & Lore", t:"The Lost Colony of Roanoke", h:"The 117 settlers who vanished, leaving only a single carved word behind."},
+  {cat:"Wild History & Lore", t:"The Great Fire of Rome's Real Culprit", h:"What historians now believe actually happened the night Nero allegedly fiddled."},
+  {cat:"Wild History & Lore", t:"The Voynich Manuscript's Modern Copycats", h:"The wave of contemporary constructed-language hoaxes it has inspired."},
+  {cat:"Wild History & Lore", t:"The Cottingley Fairies", h:"The photographs of 'real' fairies that fooled Sherlock Holmes's own creator for years."},
+  {cat:"Wild History & Lore", t:"The Doomsday Book", h:"William the Conqueror's exhaustive 1086 survey of England, still referenced in property disputes today."},
+  {cat:"Wild History & Lore", t:"The Great Australian Rabbit Fence", h:"The 2,000-mile barrier built to hold back an invasive species that had already gotten through."},
+  {cat:"Wild History & Lore", t:"The Order of the Occult Hand", h:"The decades-long prank where journalists secretly embedded the same phrase across news stories."},
+  {cat:"Wild History & Lore", t:"The West Memphis Three", h:"How satanic panic and forensic missteps converged into one of the most scrutinized cases in modern history."},
+  {cat:"Wild History & Lore", t:"The Peshtigo Fire", h:"The deadliest wildfire in American history — overshadowed the same night by the Great Chicago Fire."},
+  {cat:"Wild History & Lore", t:"The Codex Mendoza", h:"The Aztec manuscript created after conquest to preserve a civilization's history for its conquerors."},
+  {cat:"Wild History & Lore", t:"The Long Walk of the Navajo", h:"The forced 300-mile relocation that reshaped an entire nation's geography and memory."},
+  {cat:"Wild History & Lore", t:"The Mystery of D.B. Cooper", h:"The only unsolved commercial airplane hijacking in U.S. history."},
+  {cat:"Wild History & Lore", t:"The Ghost Army of WWII", h:"The unit of artists and sound engineers who used inflatable tanks to fool the Nazis."},
+  {cat:"Wild History & Lore", t:"The Bell Witch Legend", h:"Antebellum Tennessee's most famous haunting, allegedly witnessed by a future U.S. president."},
+  {cat:"Wild History & Lore", t:"The Codebreaker Who Wasn't Believed", h:"The WWII cryptanalyst whose warnings about Pearl Harbor were dismissed before the attack."},
+  {cat:"Wild History & Lore", t:"The Great Wall's Human Cost", h:"The staggering, often-omitted death toll behind one of the world's most photographed structures."},
+  {cat:"Wild History & Lore", t:"The Perpetual Motion Con Artists", h:"The 19th-century inventors who convinced investors and physicists alike that they'd cracked physics."},
+  {cat:"Wild History & Lore", t:"The Krakatoa Sunsets", h:"How a single 1883 eruption turned skies red worldwide and reportedly inspired 'The Scream.'"},
+  {cat:"Wild History & Lore", t:"The Trial by Combat's Last Stand", h:"The surprisingly recent legal cases where trial by combat was still technically on the books."},
+  {cat:"Wild History & Lore", t:"The Lighthouse of Eilean Mor", h:"Three keepers vanished from a remote Scottish lighthouse, leaving a table set mid-meal."},
+  {cat:"Wild History & Lore", t:"The Original Luddites", h:"What the 19th-century textile workers were actually protesting — and why the label got twisted."},
+  {cat:"Wild History & Lore", t:"The Codex of Justinian's Long Shadow", h:"How one Byzantine emperor's legal code still underlies much of modern Western law."},
+  {cat:"Wild History & Lore", t:"The Aokigahara Forest's Historical Roots", h:"How folklore, geology, and modern tragedy converged around Japan's 'Sea of Trees.'"},
+  {cat:"Wild History & Lore", t:"The Salem Witch Trials' Overlooked Trigger", h:"The recent theory linking the hysteria to a fungus-contaminated grain supply."},
+  {cat:"Wild History & Lore", t:"The Man Who Invented a Country", h:"The 19th-century Scotsman who sold investors land in a nation that didn't exist."},
+  {cat:"Wild History & Lore", t:"The Codex of the Aztec Calendar", h:"The astronomical precision hidden inside the stone often mistaken for a doomsday prophecy."},
+  {cat:"Wild History & Lore", t:"The Spontaneous Human Combustion Cases", h:"The centuries of unexplained deaths that fueled one of history's strangest medical debates."},
+  {cat:"Wild History & Lore", t:"The Kensington of Cartography: The Vinland Map", h:"The disputed medieval map that may prove Norse contact with America — or may be a forgery."},
+  {cat:"Wild History & Lore", t:"The Great Hedge of India", h:"The 2,500-mile living wall the British built and maintained purely to enforce a salt tax."},
+  {cat:"Wild History & Lore", t:"The Trial of the Tempest Prognosticator", h:"The Victorian invention that used live leeches to predict storms."},
+  {cat:"Wild History & Lore", t:"The Society of the Dilettanti", h:"The 18th-century club of wealthy explorers that quietly funded the birth of modern archaeology."},
+  {cat:"Wild History & Lore", t:"The Codebreaking of the Rosetta Stone", h:"The decades-long race between rival scholars to crack ancient Egyptian."},
+  {cat:"Wild History & Lore", t:"The Weeping Time", h:"The largest single slave auction in U.S. history, held during a two-day thunderstorm in 1859."},
+  {cat:"Wild History & Lore", t:"The Man Who Saved the World Quietly", h:"The Soviet officer who single-handedly prevented a nuclear launch during the Cuban Missile Crisis."},
+  {cat:"Wild History & Lore", t:"The Great Vowel Shift", h:"The centuries-long, still-not-fully-explained sound change that reshaped English pronunciation."},
+  {cat:"Wild History & Lore", t:"The Codex of the Library of Alexandria's Slow Death", h:"How the legendary library likely faded through neglect, not a single dramatic fire."},
+  {cat:"Wild History & Lore", t:"The Codex of the Nazca Lines", h:"The massive desert geoglyphs only fully visible from the air, made centuries before flight existed."},
+  {cat:"Wild History & Lore", t:"The Great Library Fire That Probably Wasn't", h:"Re-examining the popular story of Alexandria's library burning in one dramatic blaze."},
+  {cat:"Wild History & Lore", t:"The Kensington of Lost Languages: Linear A", h:"The Bronze Age script still undeciphered, unlike its sister script Linear B."},
+  {cat:"Date Night & Connection", t:"The 36 Questions That Lead to Love", h:"The real psychology study behind the viral 'fall in love with anyone' list."},
+  {cat:"Date Night & Connection", t:"The Psychology of Shared Silence", h:"Why comfortable quiet between two people is a bigger relationship milestone than conversation."},
+  {cat:"Date Night & Connection", t:"The Architecture of Intimacy", h:"How the shape of a room — booth seating, lighting, distance — quietly decides how close you feel."},
+  {cat:"Date Night & Connection", t:"Attachment Styles in the Wild", h:"Spotting anxious, avoidant, and secure attachment from how someone texts back."},
+  {cat:"Date Night & Connection", t:"The Mere Exposure Effect in Dating", h:"Why we fall for the person we simply keep bumping into, not the 'perfect' stranger."},
+  {cat:"Date Night & Connection", t:"Love Languages, Unsourced", h:"The pop-psychology term everyone quotes on a first date — and the shaky science behind it."},
+  {cat:"Date Night & Connection", t:"The Fast Friends Procedure", h:"The lab technique researchers use to create closeness between total strangers in 45 minutes."},
+  {cat:"Date Night & Connection", t:"The Bridge Study on Attraction", h:"The famous experiment showing fear and attraction can feel almost identical to the body."},
+  {cat:"Date Night & Connection", t:"The Gottman Ratio", h:"The 5-to-1 positive-to-negative interaction ratio that predicts whether a couple stays together."},
+  {cat:"Date Night & Connection", t:"The Psychology of a Good First Date Question", h:"Why 'what's your story?' outperforms 'what do you do?' almost every time."},
+  {cat:"Date Night & Connection", t:"The Art of the Slow Reveal", h:"Why gradual, mutual vulnerability builds trust faster than an early overshare."},
+  {cat:"Date Night & Connection", t:"The Curse of the Instant Spark", h:"Why 'love at first sight' often predicts a shorter relationship, not a stronger one."},
+  {cat:"Date Night & Connection", t:"The Psychology of Compatibility Myths", h:"Why shared interests matter less for long-term happiness than shared values."},
+  {cat:"Date Night & Connection", t:"The Four Horsemen of Relationship Conflict", h:"The specific communication patterns that predict breakups with unnerving accuracy."},
+  {cat:"Date Night & Connection", t:"The Art of the Callback Joke", h:"Why referencing an earlier moment in the date signals real attention, not just charm."},
+  {cat:"Date Night & Connection", t:"The Psychology of Touch in New Relationships", h:"What a hand briefly resting on an arm actually communicates neurologically."},
+  {cat:"Date Night & Connection", t:"The Vulnerability Loop", h:"The back-and-forth pattern of small disclosures that builds trust between two people."},
+  {cat:"Date Night & Connection", t:"The Novelty Date Effect", h:"Why couples who try something new together report feeling more 'in love,' even decades in."},
+  {cat:"Date Night & Connection", t:"The Psychology of Eye Contact Duration", h:"The specific number of seconds researchers found maximizes felt connection without discomfort."},
+  {cat:"Date Night & Connection", t:"The Art of Active Listening on a Date", h:"The subtle difference between waiting to talk and actually listening."},
+  {cat:"Date Night & Connection", t:"The Psychology of Playlists as Love Letters", h:"What the songs someone shares with you reveal about how they see the relationship."},
+  {cat:"Date Night & Connection", t:"The Proximity Principle", h:"Why most long-term couples met through pure physical or social proximity, not algorithms."},
+  {cat:"Date Night & Connection", t:"The Psychology of the Second Date Question", h:"Why 'what did you think of me?' rarely works but 'what surprised you?' often does."},
+  {cat:"Date Night & Connection", t:"Interdependence Theory", h:"The framework economists and psychologists both use to explain why relationships feel worth the cost."},
+  {cat:"Date Night & Connection", t:"The Psychology of Shared Laughter", h:"Why couples who laugh together report significantly higher relationship satisfaction."},
+  {cat:"Date Night & Connection", t:"The Art of Disagreeing Well", h:"The specific phrasing that turns a fight into a conversation, researched down to the sentence."},
+  {cat:"Date Night & Connection", t:"The Psychology of 'Micro-Cheating' Debates", h:"Why the internet can't agree where emotional boundaries actually begin."},
+  {cat:"Date Night & Connection", t:"The Chemistry of a Good Hug", h:"What an 8-to-10-second hug does to oxytocin levels that a quick one doesn't."},
+  {cat:"Date Night & Connection", t:"The Psychology of Nostalgia on a Date", h:"Why sharing childhood memories accelerates emotional closeness faster than opinions do."},
+  {cat:"Date Night & Connection", t:"The Art of the Non-Apology", h:"Why 'I'm sorry you feel that way' quietly damages trust more than saying nothing."},
+  {cat:"Date Night & Connection", t:"The Psychology of Long-Distance Attachment", h:"Why some long-distance couples report deeper emotional intimacy than couples who see each other daily."},
+  {cat:"Date Night & Connection", t:"The Rule of Reciprocal Vulnerability", h:"Why oversharing too fast can backfire just as much as undersharing."},
+  {cat:"Date Night & Connection", t:"The Psychology of Jealousy as Information", h:"What a specific pang of jealousy is actually trying to tell you about your own values."},
+  {cat:"Date Night & Connection", t:"The Art of the Deep Question Ladder", h:"How to escalate from small talk to real intimacy without it feeling forced."},
+  {cat:"Date Night & Connection", t:"The Psychology of 'The Ick'", h:"The evolutionary theory behind sudden, irrational attraction shutoffs."},
+  {cat:"Date Night & Connection", t:"The Compliment That Actually Lands", h:"Why specific, unexpected compliments outperform generic ones in every study on the topic."},
+  {cat:"Date Night & Connection", t:"The Psychology of Anniversary Rituals", h:"Why couples who mark small, private milestones report stronger long-term bonds."},
+  {cat:"Date Night & Connection", t:"The Art of Repair After a Fight", h:"The specific researched behaviors that determine whether an argument strengthens or erodes a relationship."},
+  {cat:"Date Night & Connection", t:"The Psychology of Shared Meals", h:"Why cooking together activates more bonding cues than eating out."},
+  {cat:"Date Night & Connection", t:"The Curious/Judgmental Framework", h:"The single mental reframe therapists say prevents most relationship arguments from escalating."},
+  {cat:"Date Night & Connection", t:"The Psychology of 'Bids for Connection'", h:"The tiny daily moments — a comment, a sigh, a glance — that quietly predict long-term relationship health."},
+  {cat:"Date Night & Connection", t:"The Art of Playful Teasing", h:"Why gentle, well-calibrated teasing signals safety and affection between close people."},
+  {cat:"Date Night & Connection", t:"The Psychology of the Awkward Pause", h:"Why sitting through discomfort together, instead of filling it, can deepen trust."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Shared Adventure", h:"Why activities with mild physical risk — hiking, rock climbing — measurably boost attraction."},
+  {cat:"Date Night & Connection", t:"The Psychology of Digital Intimacy", h:"What voice notes and typing indicators do to felt closeness that texts alone don't."},
+  {cat:"Date Night & Connection", t:"The Art of the Honest Compliment About Flaws", h:"Why noticing and accepting someone's quirks builds deeper trust than praising only their strengths."},
+  {cat:"Date Night & Connection", t:"The Psychology of 'Future Talk' Too Soon", h:"Why bringing up long-term plans early can accelerate or sabotage a new connection."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Scent and Attraction", h:"What research on natural body odor reveals about genetic compatibility."},
+  {cat:"Date Night & Connection", t:"The Psychology of Third Dates", h:"Why researchers say the third date, not the first, is the real predictor of long-term potential."},
+  {cat:"Date Night & Connection", t:"The Art of Asking for What You Need", h:"Why indirect hints fail where direct, kind requests succeed."},
+  {cat:"Date Night & Connection", t:"The Psychology of Shared Vulnerability Under Stress", h:"Why couples who face a hard moment early on often bond faster than ones who don't."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Candlelight", h:"The measurable psychological effects of warm, low lighting on perceived attractiveness and comfort."},
+  {cat:"Date Night & Connection", t:"The Psychology of the Goodnight Text", h:"What the timing and content of a post-date text actually signals."},
+  {cat:"Date Night & Connection", t:"The Art of Genuine Curiosity", h:"Why people rate dates higher when asked follow-up questions, not just initial ones."},
+  {cat:"Date Night & Connection", t:"The Psychology of Attachment Injuries", h:"How a single betrayal of trust can echo through years of an otherwise healthy relationship."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Shared Physical Activity", h:"Why couples who exercise together report higher relationship satisfaction than those who don't."},
+  {cat:"Date Night & Connection", t:"The Psychology of the 'Type' We Keep Choosing", h:"Why people unconsciously repeat relationship patterns from their family of origin."},
+  {cat:"Date Night & Connection", t:"The Art of Comfortable Disagreement", h:"Why couples who can disagree calmly early on tend to handle bigger conflicts better later."},
+  {cat:"Date Night & Connection", t:"The Psychology of Pet Names", h:"What the invention of a private nickname reveals about relational identity-building."},
+  {cat:"Date Night & Connection", t:"The Chemistry of the 'Cuddle Hormone'", h:"What oxytocin actually does, and doesn't do, in bonding between partners."},
+  {cat:"Date Night & Connection", t:"The Psychology of Long Talks Past Midnight", h:"Why sleep deprivation lowers social inhibition and accelerates emotional disclosure."},
+  {cat:"Date Night & Connection", t:"The Art of the Genuine Question 'How Are You, Really?'", h:"Why most people never get asked twice, and what happens when they do."},
+  {cat:"Date Night & Connection", t:"The Psychology of Shared Vocabulary", h:"Why couples who develop inside references and private slang report feeling more 'like a team.'"},
+  {cat:"Date Night & Connection", t:"The Chemistry of First Kiss Timing", h:"What research says actually predicts whether a first kiss lands well or awkwardly."},
+  {cat:"Date Night & Connection", t:"The Psychology of Emotional Bandwidth", h:"Why the best listener on a date isn't the one with the most advice, but the most patience."},
+  {cat:"Date Night & Connection", t:"The Art of Small Gestures Over Grand Ones", h:"Why consistent tiny acts of care outperform rare, expensive ones in long-term satisfaction."},
+  {cat:"Date Night & Connection", t:"The Psychology of the 'Are We Exclusive?' Talk", h:"Why timing this conversation too early or too late both carry measurable risks."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Walking Side by Side", h:"Why difficult conversations go easier when two people walk instead of sit face-to-face."},
+  {cat:"Date Night & Connection", t:"The Psychology of Forgiving Small Things Fast", h:"Why letting minor irritations go quickly correlates strongly with long-term relationship health."},
+  {cat:"Date Night & Connection", t:"The Art of the Follow-Up Text", h:"Why referencing something specific from the date outperforms a generic 'had fun!'"},
+  {cat:"Date Night & Connection", t:"The Psychology of Attraction to Confidence", h:"What confidence actually signals evolutionarily, and how it differs from arrogance."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Cold Weather Dates", h:"Why shared discomfort, like walking in the cold, can accelerate bonding through mild shared adversity."},
+  {cat:"Date Night & Connection", t:"The Psychology of the Long Goodbye", h:"What lingering a few extra minutes at the door actually communicates."},
+  {cat:"Date Night & Connection", t:"The Art of Vulnerability Without Oversharing", h:"The line between honest disclosure and unloading, and why it matters on early dates."},
+  {cat:"Date Night & Connection", t:"The Psychology of Shared Humor Styles", h:"Why compatible senses of humor predict relationship longevity better than shared hobbies."},
+  {cat:"Date Night & Connection", t:"The Chemistry of the Slow Dance", h:"What synchronized movement between two people does to felt closeness."},
+  {cat:"Date Night & Connection", t:"The Psychology of 'Green Flags'", h:"Why the internet's obsession with red flags may be missing the more useful half of the conversation."},
+  {cat:"Date Night & Connection", t:"The Art of Genuine Apology in New Relationships", h:"Why how someone apologizes on date three predicts more than what they apologize for."},
+  {cat:"Date Night & Connection", t:"The Psychology of Comfort Silence vs. Awkward Silence", h:"The subtle cues that separate the two, and why timing matters more than duration."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Shared Meals Cooked Together", h:"Why the act of cooking side by side outperforms most other 'getting to know you' activities."},
+  {cat:"Date Night & Connection", t:"The Psychology of the Text-Back Delay", h:"What response-time actually signals, and what it doesn't, according to communication researchers."},
+  {cat:"Date Night & Connection", t:"The Art of Naming What You Appreciate", h:"Why explicitly stating what you like about someone builds trust faster than assuming they know."},
+  {cat:"Date Night & Connection", t:"The Psychology of Vulnerability Hangovers", h:"Why sharing something real can trigger anxiety afterward, even when the date went well."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Sunset Timing", h:"Why golden hour lighting measurably affects perceived attractiveness in first-date research."},
+  {cat:"Date Night & Connection", t:"The Psychology of the 'Situationship'", h:"Why undefined relationships create a specific, researched kind of chronic low-grade stress."},
+  {cat:"Date Night & Connection", t:"The Art of Curiosity About Someone's Past", h:"Why asking about someone's history, gently, builds intimacy faster than asking about their future."},
+  {cat:"Date Night & Connection", t:"The Psychology of Physical Synchrony", h:"Why couples who unconsciously match walking pace or breathing report feeling closer."},
+  {cat:"Date Night & Connection", t:"The Chemistry of the First 'I Miss You'", h:"What the timing of this specific phrase tends to predict about a relationship's trajectory."},
+  {cat:"Date Night & Connection", t:"The Psychology of Emotional Labor in Early Dating", h:"Why noticing who remembers small details often predicts long-term care."},
+  {cat:"Date Night & Connection", t:"The Art of the Genuine Toast", h:"Why a specific, personal toast at a milestone dinner lands more than a generic one."},
+  {cat:"Date Night & Connection", t:"The Psychology of Shared Discomfort", h:"Why getting mildly lost together on a date often becomes the story you tell for years."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Handwritten Notes Between Partners", h:"Why a physical note triggers different memory encoding than a text ever could."},
+  {cat:"Date Night & Connection", t:"The Psychology of the 'What Are We' Conversation", h:"The communication framework researchers recommend for defining a relationship without conflict."},
+  {cat:"Date Night & Connection", t:"The Art of Remembering the Small Thing", h:"Why bringing up a detail from three dates ago has an outsized effect on felt care."},
+  {cat:"Date Night & Connection", t:"The Psychology of Comfortable Boredom Together", h:"Why the ability to do nothing together, happily, is a stronger long-term predictor than exciting dates."},
+  {cat:"Date Night & Connection", t:"The Chemistry of a Shared Playlist Built Over Time", h:"How a growing, co-created playlist becomes a quiet diary of a relationship."},
+  {cat:"Date Night & Connection", t:"The Psychology of Saying 'I Was Wrong'", h:"Why this exact phrase, researchers found, repairs trust faster than almost any other."},
+  {cat:"Date Night & Connection", t:"The Psychology of the Shared Umbrella Moment", h:"Why small, forced physical closeness from weather or crowds subtly boosts felt intimacy."},
+  {cat:"Date Night & Connection", t:"The Chemistry of Laughing at the Same Things", h:"Why matched senses of humor activate reward circuitry similarly to shared values."},
+  {cat:"Date Night & Connection", t:"The Art of the Genuine 'Tell Me More'", h:"Why this specific phrase outperforms almost any other follow-up in relationship research."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Kintsugi", h:"The Japanese practice of repairing broken pottery with gold instead of hiding the crack."},
+  {cat:"Aesthetic Hobbies", t:"Analog Film & Silver Halides", h:"The exact chemistry that turns light into a physical photograph you can hold."},
+  {cat:"Aesthetic Hobbies", t:"Mechanical Keyboard Acoustics", h:"The engineering behind a satisfying 'thock' — and the obsessive community chasing it."},
+  {cat:"Aesthetic Hobbies", t:"Perfume Layering as Composition", h:"Building a scent like a chord progression: top, heart, and base notes."},
+  {cat:"Aesthetic Hobbies", t:"Bonsai & the Discipline of Patience", h:"Sculpting a living tree over decades — one of the slowest art forms still practiced."},
+  {cat:"Aesthetic Hobbies", t:"Letterpress Printing", h:"The tactile, mechanical history of type that existed centuries before the pixel."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Fountain Pen Nib Grinding", h:"How collectors customize a single steel tip to match the exact angle of their handwriting."},
+  {cat:"Aesthetic Hobbies", t:"Terrarium Building as Miniature Ecosystems", h:"The closed-glass worlds that can technically sustain themselves for decades."},
+  {cat:"Aesthetic Hobbies", t:"The Physics of Vinyl Record Grooves", h:"How a needle reads a physical waveform etched into plastic to recreate sound."},
+  {cat:"Aesthetic Hobbies", t:"Marbling Paper (Ebru)", h:"The centuries-old technique of painting on water, then lifting the pattern onto paper."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Whittling", h:"What separates decorative carving from the meditative, almost trance-like practice some describe."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Speedcubing", h:"The muscle-memory algorithms behind solving a Rubik's Cube in under five seconds."},
+  {cat:"Aesthetic Hobbies", t:"The Chemistry of Fermentation Hobbies", h:"Why home fermenters describe tending a sourdough starter like caring for a pet."},
+  {cat:"Aesthetic Hobbies", t:"Urban Sketching", h:"The practice of drawing a city in real time, imperfections and all, instead of from a photo."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Tea Ceremony Precision", h:"Why every motion in a traditional tea ceremony is choreographed to the centimeter."},
+  {cat:"Aesthetic Hobbies", t:"Analog Synthesizer Patching", h:"The tangle of cables musicians use to build sound from raw electrical voltage."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand-Bound Books", h:"The stitching and folding techniques bookbinders use that predate the printing press."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Birdwatching (Big Years)", h:"The obsessive, cross-country sport of spotting as many bird species as possible in 365 days."},
+  {cat:"Aesthetic Hobbies", t:"The Physics of Kite Flying", h:"Why the exact angle of a kite's bridle determines whether it soars or crashes."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Calligraphy Pressure Strokes", h:"How a single pen creates thick and thin lines using nothing but hand pressure."},
+  {cat:"Aesthetic Hobbies", t:"Mycology as a Hobby", h:"The amateur mushroom hunters who forage, identify, and spore-print for fun."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Knife Sharpening", h:"The obsessive precision behind achieving a mirror-polished edge by hand."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Puzzle Solving (Jigsaw Sport)", h:"The world championship where teams race the clock on 500-piece puzzles."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Ikebana", h:"The Japanese flower arranging discipline built around asymmetry, negative space, and restraint."},
+  {cat:"Aesthetic Hobbies", t:"Analog Watch Complications", h:"The centuries-old mechanical puzzles packed into a case the size of a coin."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Leatherworking by Hand", h:"The stitching, tooling, and dyeing techniques behind a hand-stitched wallet."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Domino Toppling", h:"The engineering discipline behind chain reactions involving hundreds of thousands of tiles."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Stained Glass", h:"The centuries-old technique of cutting colored glass to bend and scatter light on purpose."},
+  {cat:"Aesthetic Hobbies", t:"Home Barometer & Weather Instrument Collecting", h:"The niche hobby of tracking hyperlocal weather with antique analog tools."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Wet Shaving", h:"Why a straight razor and shaving soap have a devoted modern following despite disposable razors."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Chess Speedrunning (Bullet Chess)", h:"The high-speed variant where entire games last under a minute."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Marquetry", h:"Assembling images and patterns entirely from thin slices of colored wood veneer."},
+  {cat:"Aesthetic Hobbies", t:"The Physics of Boomerang Flight", h:"Why a curved piece of wood can be engineered to reliably return to the thrower."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Cheese Affinage", h:"The art of aging cheese in controlled environments to develop specific flavors over months."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Yo-Yo Freestyle", h:"The physics and choreography behind modern yo-yo competition tricks."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Sand Mandala Construction", h:"Monks spend weeks building intricate sand art they intentionally destroy upon completion."},
+  {cat:"Aesthetic Hobbies", t:"Home Distillation of Essential Oils", h:"The steam-distillation process hobbyists use to extract scent from plants at home."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Blacksmithing Damascus Steel", h:"The folding technique that produces the signature wavy pattern in a blade."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Sandcastle Building", h:"The engineering tricks — wet-packing, carving tools — behind championship-level sand sculpture."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Origami Tessellations", h:"The mathematical folding patterns that turn flat paper into complex repeating structures."},
+  {cat:"Aesthetic Hobbies", t:"Home Aquascaping", h:"Designing underwater landscapes in a fish tank the way a landscape architect designs a garden."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Glassblowing", h:"The centuries-old technique of shaping molten glass using nothing but breath and gravity."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Axe Throwing", h:"The niche sport that turned a lumberjack skill into a bar-league pastime."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Sumi-e Ink Painting", h:"The Japanese brush painting style built on a single, unrepeatable stroke."},
+  {cat:"Aesthetic Hobbies", t:"Home Barrel Aging of Spirits", h:"The hobbyist practice of aging small-batch spirits in miniature oak barrels at home."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Taxidermy", h:"The blend of anatomy, sculpture, and preservation chemistry behind lifelike mounted specimens."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Metal Detecting", h:"The community that combines archaeology, history, and treasure hunting as a weekend hobby."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Paper Cutting (Scherenschnitte)", h:"The centuries-old folk art of cutting intricate scenes from a single sheet of paper."},
+  {cat:"Aesthetic Hobbies", t:"Home Beekeeping", h:"The hobbyist practice of managing a hive, and the surprising psychology of not fearing the sting."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Wood Turning on a Lathe", h:"Spinning a block of wood at high speed to carve bowls, pens, and ornaments by hand."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Whistling", h:"The world championship sport of musical whistling, complete with judged technical categories."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Enamel Cloisonné", h:"The metalworking technique of soldering thin wire to create compartments filled with colored glass powder."},
+  {cat:"Aesthetic Hobbies", t:"Home Rocketry (Model Rocket Building)", h:"The hobbyist community that builds and launches scale rockets using real aerospace principles."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand Weaving on a Loom", h:"The mathematical patterning behind textiles woven thread by thread."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Pigeon Racing", h:"The centuries-old sport of timing homing pigeons across hundreds of miles."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Freehand Airbrushing", h:"The spray-control techniques behind photorealistic airbrush art."},
+  {cat:"Aesthetic Hobbies", t:"Home Cheese Making from Scratch", h:"The hobbyist process of turning milk into cheese using nothing but cultures, rennet, and patience."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Antique Clock Restoration", h:"The horology skills required to bring a centuries-old mechanical movement back to life."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Kite Fighting", h:"The centuries-old sport where kite strings are coated in ground glass to cut opponents' lines."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Botanical Illustration", h:"The scientific-meets-artistic discipline of drawing plants with taxonomic precision."},
+  {cat:"Aesthetic Hobbies", t:"Home Soap Making (Cold Process)", h:"The chemistry hobbyists use to turn oils and lye into bars of soap from scratch."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Pottery Wheel Throwing", h:"The centering technique that determines whether a lump of clay becomes a bowl or a mess."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Ice Carving", h:"The timed sport of sculpting massive ice blocks into detailed art before they melt."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Miniature Diorama Building", h:"The hobby of constructing entire tiny worlds inside a single display case."},
+  {cat:"Aesthetic Hobbies", t:"Home Mead Making", h:"The ancient practice of fermenting honey into alcohol, seeing a modern hobbyist revival."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand-Cut Dovetail Joints", h:"The woodworking joint prized for strength and precision, cut entirely without power tools."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Cup Stacking (Sport Stacking)", h:"The blindingly fast sport of stacking and unstacking cups in specific patterns."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Batik Wax-Resist Dyeing", h:"The centuries-old technique of using wax to block dye and create intricate fabric patterns."},
+  {cat:"Aesthetic Hobbies", t:"Home Telescope Making", h:"The hobbyist practice of grinding and polishing your own glass mirror to build a working telescope."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Marionette Puppetry", h:"The mechanical engineering hidden inside a puppet with a dozen controllable strings."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Barista Latte Art", h:"The judged sport of pouring milk into espresso to create detailed images in the foam."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Encaustic Painting", h:"The ancient technique of painting with pigmented, heated beeswax."},
+  {cat:"Aesthetic Hobbies", t:"Home Rock Tumbling & Lapidary Work", h:"The slow hobby of turning rough stones into polished gems using nothing but grit and time."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand Embroidery", h:"The needle techniques behind textile art that predates written language in some cultures."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Chess Boxing", h:"The hybrid sport that alternates rounds of chess with rounds of boxing."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Scrimshaw", h:"The 19th-century sailor's craft of engraving intricate scenes into whale bone and ivory."},
+  {cat:"Aesthetic Hobbies", t:"Home Candle Making from Scratch", h:"The wax chemistry hobbyists use to control scent throw, burn time, and melt pool."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Chainmail Weaving", h:"The medieval armor technique now practiced as a jewelry and fiber art hobby."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Falconry Displays", h:"The ancient partnership between human and bird of prey, still practiced and judged today."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Woodblock Printing (Ukiyo-e Technique)", h:"The centuries-old Japanese method of carving and inking wood to mass-produce art."},
+  {cat:"Aesthetic Hobbies", t:"Home Cider Pressing", h:"The autumn hobby of turning backyard apples into cider using a hand-cranked press."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand-Lettered Signage", h:"The sign-painting technique that predates vinyl decals and digital printing."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Drone Racing", h:"The first-person-view sport where pilots race custom-built drones through obstacle courses."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Origami Kirigami", h:"The paper craft that combines folding with strategic cutting to create pop-up structures."},
+  {cat:"Aesthetic Hobbies", t:"Home Vermicomposting", h:"The hobbyist practice of using worms to turn kitchen scraps into garden-ready compost."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand-Forged Knives", h:"The bladesmithing process of hammering raw steel into a functional, balanced blade."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Sourdough Baking Circles", h:"The online communities that trade starters, techniques, and crumb-shot photography."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Wire Wrapping Jewelry", h:"The technique of shaping gemstones into jewelry using nothing but wire and hand tools."},
+  {cat:"Aesthetic Hobbies", t:"Home Meteorite Hunting", h:"The hobbyist practice of identifying and collecting fragments of space rock that reached Earth."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Traditional Archery", h:"The discipline of building and shooting bows the way archers did for thousands of years."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Robot Combat (BattleBots-Style)", h:"The engineering arms race behind building remote-controlled machines designed to destroy each other."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Fresco Painting", h:"The centuries-old technique of painting directly onto wet plaster before it dries."},
+  {cat:"Aesthetic Hobbies", t:"Home Sake Brewing", h:"The fermentation hobby of turning rice into sake using traditional koji cultivation."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand-Carved Stamp Making", h:"The niche art of carving custom rubber or linoleum stamps by hand."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Model Train Layout Building", h:"The scale-modeling hobby that blends carpentry, electronics, and miniature landscaping."},
+  {cat:"Aesthetic Hobbies", t:"The Art of Paper Marbling for Bookbinding", h:"How marbled endpapers became a signature mark of fine bookbinding."},
+  {cat:"Aesthetic Hobbies", t:"Home Charcuterie Curing", h:"The hobbyist practice of dry-curing meats at home using salt, time, and controlled humidity."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand-Painted Miniatures", h:"The tiny-brush technique tabletop gamers use to paint figures a few centimeters tall."},
+  {cat:"Aesthetic Hobbies", t:"Home Pressed Flower Art", h:"The centuries-old hobby of preserving flowers under pressure to make lasting botanical art."},
+  {cat:"Aesthetic Hobbies", t:"The Craft of Hand-Poured Bronze Casting", h:"The lost-wax casting technique sculptors have used almost unchanged for 5,000 years."},
+  {cat:"Aesthetic Hobbies", t:"Competitive Paper Airplane Design", h:"The aerodynamics hobbyists exploit to set world records for distance and hang time."},
+  {cat:"Culture & Curiosities", t:"The Voynich Manuscript", h:"Six hundred years of attempts, zero decoded pages — the internet's favorite unsolved book."},
+  {cat:"Culture & Curiosities", t:"Liminal Spaces in Pop Culture", h:"Why an empty mall or a lit hallway at 3am makes your skin crawl for no clear reason."},
+  {cat:"Culture & Curiosities", t:"ASMR and Frisson", h:"The science behind involuntary chills, tingles, and goosebumps triggered by sound."},
+  {cat:"Culture & Curiosities", t:"The Mandela Effect", h:"How thousands of strangers can share the exact same false memory."},
+  {cat:"Culture & Curiosities", t:"The Backrooms Phenomenon", h:"How an internet forum built an entire mythology out of one unsettling photo."},
+  {cat:"Culture & Curiosities", t:"The Uncanny Valley", h:"Why 'almost human' unsettles us more than something not human at all."},
+  {cat:"Culture & Curiosities", t:"The SCP Foundation", h:"The collaborative fiction wiki that turned crowdsourced horror into its own sprawling universe."},
+  {cat:"Culture & Curiosities", t:"Weird Twitter / Absurdist Internet Humor", h:"How a specific, surreal style of joke became its own dialect online."},
+  {cat:"Culture & Curiosities", t:"The Dead Internet Theory", h:"The fringe claim that most online content and traffic is now generated by bots, not people."},
+  {cat:"Culture & Curiosities", t:"Copypasta Culture", h:"How specific blocks of text get copied, mutated, and spread until they become internet folklore."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Vaporwave", h:"The nostalgic, glitchy visual genre built from 80s malls, Greek statues, and Windows 95."},
+  {cat:"Culture & Curiosities", t:"Cottagecore as a Cultural Response", h:"Why an aesthetic built around slow rural life exploded during peak digital burnout."},
+  {cat:"Culture & Curiosities", t:"The Lore of Cicada 3301", h:"The anonymous internet puzzle so complex that intelligence agencies were rumored to be involved."},
+  {cat:"Culture & Curiosities", t:"The History of Chain Letters", h:"How a pre-internet superstition trained an entire culture to forward things 'just in case.'"},
+  {cat:"Culture & Curiosities", t:"Creepypasta as Modern Folklore", h:"Why internet horror stories function almost exactly like campfire legends did a century ago."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Liminal Space Photography", h:"The niche photography genre built entirely around unsettling, empty transitional places."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Rizz' and Slang Cycles", h:"How internet slang is coined, peaks, and dies within a measurable, shortening timeframe."},
+  {cat:"Culture & Curiosities", t:"The Culture of ARGs (Alternate Reality Games)", h:"The genre of games designed to make players question what's fiction and what's real."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Analog Horror", h:"Why fake VHS static and corrupted broadcasts became one of horror's most popular modern styles."},
+  {cat:"Culture & Curiosities", t:"The History of Urban Legends About Malls", h:"Why abandoned and dying shopping malls became such a specific cultural obsession."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Nostalgia-Bait Media", h:"Why franchises keep resurrecting exact aesthetics from decades their audience never lived through."},
+  {cat:"Culture & Curiosities", t:"The Culture of Unsolved Mysteries Communities", h:"How amateur internet sleuths turned cold cases into a genre of participatory investigation."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Y2K Fashion Revival", h:"Why a specific, chaotic early-2000s look keeps cycling back into style."},
+  {cat:"Culture & Curiosities", t:"The History of the 'Slender Man' Phenomenon", h:"How a 2009 forum creation became a real-world cautionary tale within five years."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Micro-Generations Online", h:"Why a two-year age gap can now mean a completely different cultural reference set."},
+  {cat:"Culture & Curiosities", t:"The Culture of Found Footage Horror", h:"Why shaky, 'real' footage still unsettles audiences more than polished cinematography."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Solarpunk", h:"The optimistic counter-movement imagining a future built on renewable energy and community, not collapse."},
+  {cat:"Culture & Curiosities", t:"The History of Numbers Stations", h:"The real, still-active shortwave radio broadcasts of mysterious spoken numbers with no confirmed purpose."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Glitchcore' Aesthetics", h:"Why intentional digital corruption became a genre of visual art in its own right."},
+  {cat:"Culture & Curiosities", t:"The Culture of Speedrunning Communities", h:"The obsessive, frame-by-frame optimization culture behind completing video games as fast as possible."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Dark Academia", h:"Why an aesthetic built on old libraries and tweed became a global internet subculture."},
+  {cat:"Culture & Curiosities", t:"The History of Urban Exploration (Urbex)", h:"The community that documents abandoned buildings before they're demolished or forgotten."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Parasocial Fandom Escalation", h:"Why some fan communities develop intense, one-sided relationships with public figures."},
+  {cat:"Culture & Curiosities", t:"The Culture of Lo-Fi Hip Hop Radio", h:"Why an endless, anonymous looping beat became a global backdrop for studying and working."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Weirdcore and Dreamcore", h:"The deliberately disorienting internet art style built to mimic half-remembered dreams."},
+  {cat:"Culture & Curiosities", t:"The History of the Time Cube Website", h:"The infamous, incomprehensible early internet site that became a cult curiosity."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Brain Rot' Slang", h:"How algorithmically optimized short-form content is reshaping language in real time."},
+  {cat:"Culture & Curiosities", t:"The Culture of Escape Room Design", h:"The psychology puzzle designers use to control pacing, difficulty, and the feeling of a 'good' room."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Retrofuturism", h:"Why the future imagined in the 1950s still shapes design decades later."},
+  {cat:"Culture & Curiosities", t:"The History of the Bermuda Triangle Legend", h:"How a string of coincidences became one of the most durable mysteries in modern culture."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Reaction Image Culture", h:"How a single frame from an old show or movie becomes a shared cultural shorthand."},
+  {cat:"Culture & Curiosities", t:"The Culture of Competitive Trivia Nights", h:"The niche subculture of people who train, seriously, for bar trivia."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Brutalist Architecture Appreciation", h:"Why raw concrete buildings, once hated, developed a devoted online fanbase."},
+  {cat:"Culture & Curiosities", t:"The History of the Max Headroom Broadcast Signal Hijacking", h:"The still-unsolved 1987 TV hijacking that briefly interrupted two Chicago stations."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Algorithmic Nostalgia", h:"Why streaming platforms increasingly resurface culture from exactly 20-25 years ago."},
+  {cat:"Culture & Curiosities", t:"The Culture of Amateur Radio (Ham Radio)", h:"The surprisingly active hobbyist community still broadcasting long after smartphones."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Grunge Revival Cycles", h:"Why specific decades of 'ugly' style always cycle back as cool roughly 20-30 years later."},
+  {cat:"Culture & Curiosities", t:"The History of the Great Emu War Meme", h:"How a 90-year-old military failure became one of the internet's favorite recurring jokes."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Rage Bait' Content", h:"The deliberate design of online content meant to provoke anger for engagement."},
+  {cat:"Culture & Curiosities", t:"The Culture of Zine Making", h:"The DIY, photocopied publishing tradition that predates and outlasted the blog."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Kawaii Culture's Global Spread", h:"How a specific Japanese cuteness aesthetic became a worldwide visual language."},
+  {cat:"Culture & Curiosities", t:"The History of Chess Boxing as a Cult Sport", h:"How a satirical comic book concept became an actual competitive sport."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of ASMR's Scientific Skepticism", h:"Why researchers still can't fully explain what's physiologically happening during 'tingles.'"},
+  {cat:"Culture & Curiosities", t:"The Culture of Doomscrolling", h:"The specific psychological loop that keeps people scrolling bad news well past the point of enjoyment."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Frutiger Aero", h:"The 2000s-era optimistic tech design style — glossy, blue, nature-infused — now having a nostalgic revival."},
+  {cat:"Culture & Curiosities", t:"The History of the Toynbee Tiles", h:"The mysterious asphalt tiles embedded in city streets across the Americas with cryptic messages."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Internet Cults Around Fictional Universes", h:"Why some fandoms develop rituals, in-jokes, and social structures resembling religion."},
+  {cat:"Culture & Curiosities", t:"The Culture of Competitive Debate as a Subculture", h:"The rapid-fire, jargon-heavy world of high-level policy debate few outsiders understand."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Cyberpunk's Real-World Influence", h:"How a 1980s fictional genre shaped real city design, fashion, and tech marketing decades later."},
+  {cat:"Culture & Curiosities", t:"The History of the Betamax vs. VHS Format War", h:"The corporate battle that decided home video formats for a generation — decided by adult film studios."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Main Character Syndrome' Online", h:"The cultural shift toward narrating one's own life as if filmed for an audience."},
+  {cat:"Culture & Curiosities", t:"The Culture of Puzzle Hunt Communities", h:"The competitive, collaborative world of solving elaborate, multi-layered puzzle events."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Hauntology in Music", h:"The genre built around the 'ghost' of futures that were promised but never arrived."},
+  {cat:"Culture & Curiosities", t:"The History of the Betamax of Video Games: Failed Consoles", h:"The niche collector culture around gaming systems that flopped commercially but gained cult status."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Reddit's 'Am I the Asshole' as Modern Folklore", h:"How a subreddit became an accidental crowdsourced ethics court."},
+  {cat:"Culture & Curiosities", t:"The Culture of Competitive Eating", h:"The regulated, surprisingly technical sport behind speed-eating competitions."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Y2K Web Design Nostalgia", h:"Why GeoCities-era chaotic web design is being deliberately revived by younger designers."},
+  {cat:"Culture & Curiosities", t:"The History of the War of the Worlds Broadcast Panic", h:"How much of the infamous 1938 'mass panic' story was itself exaggerated by newspapers."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Micro-Celebrity Culture", h:"How algorithmic platforms created an entirely new tier of fame with its own economics."},
+  {cat:"Culture & Curiosities", t:"The Culture of Geocaching", h:"The global treasure-hunting game hidden in plain sight in millions of ordinary locations."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Industrial and Post-Industrial Ruins Photography", h:"Why decaying factories became one of photography's most romanticized subjects."},
+  {cat:"Culture & Curiosities", t:"The History of the Phantom Kangaroo Sightings", h:"The bizarre, recurring 20th-century phenomenon of kangaroo sightings in places with no kangaroos."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Algorithmic Music Genre Fragmentation", h:"Why streaming has splintered music into thousands of hyper-specific micro-genres."},
+  {cat:"Culture & Curiosities", t:"The Culture of Competitive Memory Athletes", h:"The trained techniques 'memory athletes' use to memorize decks of cards in under a minute."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Y2K Bug Panic in Retrospect", h:"Why the world braced for digital collapse in 1999 — and what actually happened at midnight."},
+  {cat:"Culture & Curiosities", t:"The History of the Voynich Manuscript's Modern Forgery Debates", h:"The ongoing scientific fight over whether the manuscript is medieval or an elaborate hoax."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Fan-Made Alternate Endings", h:"Why entire online communities rewrite the endings of movies and shows they felt betrayed by."},
+  {cat:"Culture & Curiosities", t:"The Culture of Silent Disco Events", h:"The strange, headphone-based party format where everyone's dancing to a different song."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of the 'Corecore' Video Genre", h:"The rapid-cut, emotionally dissonant video format that became a genre of internet art criticism."},
+  {cat:"Culture & Curiosities", t:"The History of the Great Molasses Meme Revival", h:"How obscure historical disasters keep resurfacing as internet in-jokes decades later."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Competitive Video Game Lore Theorizing", h:"The amateur scholarship communities that build entire timelines from scattered in-game clues."},
+  {cat:"Culture & Curiosities", t:"The Culture of Retro Tech Restoration", h:"The hobbyist-to-cultural-movement pipeline of restoring old computers and game consoles."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Nu-Goth and Mall Goth Revival", h:"Why a specific early-2000s subculture aesthetic keeps resurfacing in fashion cycles."},
+  {cat:"Culture & Curiosities", t:"The History of the Phonograph's First Recorded Panic", h:"How early audiences reacted with genuine unease to hearing recorded human voices for the first time."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Quiet Quitting' as Cultural Shorthand", h:"How a workplace attitude shift got packaged into a viral, contested phrase."},
+  {cat:"Culture & Curiosities", t:"The Culture of LARPing (Live Action Role Play)", h:"The elaborate costume, combat, and narrative rules behind organized fantasy role-play communities."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Blade Runner's Lasting Design Legacy", h:"How one film's rain-soaked neon aesthetic became shorthand for 'the future' for 40 years."},
+  {cat:"Culture & Curiosities", t:"The History of the Codebreaking Behind Kryptos", h:"The CIA headquarters sculpture with an encoded message still partially unsolved since 1990."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of Binge-Watching Culture's Rewiring of Pacing", h:"How streaming changed the actual structure of how stories are written and paced."},
+  {cat:"Culture & Curiosities", t:"The Culture of Competitive Fantasy Sports Communities", h:"The data-obsessed subculture that treats fantasy leagues like a second profession."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Occultism in 1970s Album Art", h:"Why a specific era of music leaned so heavily into mystical, esoteric visual symbolism."},
+  {cat:"Culture & Curiosities", t:"The History of the Phantom Time Hypothesis Online Revival", h:"Why a fringe historical theory found new life as internet conspiracy content."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Cozy Games' as a Genre", h:"Why low-stakes farming and life-sim games surged in popularity during periods of collective stress."},
+  {cat:"Culture & Curiosities", t:"The Culture of Competitive Rubik's Cube Collecting", h:"The niche hobby of collecting and modifying puzzle cubes purely for mechanism engineering."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of the 'Weird Al' Effect in Meme Culture", h:"Why parody and remix culture became one of the internet's dominant creative modes."},
+  {cat:"Culture & Curiosities", t:"The History of the Franklin Expedition's Modern Rediscovery", h:"How sonar finally located two Victorian ships lost in the Arctic for 170 years."},
+  {cat:"Culture & Curiosities", t:"The Phenomenon of 'Weirdcore' Music Sampling", h:"Why producers deliberately sample degraded, half-remembered childhood media."},
+  {cat:"Culture & Curiosities", t:"The Culture of Competitive Whistling Championships", h:"Inside the judged sport of musical whistling and its surprisingly technical scoring."},
+  {cat:"Culture & Curiosities", t:"The Aesthetic of Abandoned Amusement Parks", h:"Why decommissioned theme parks became one of urbex photography's most haunting subjects."},
+  {cat:"Culture & Curiosities", t:"The History of the SS Baychimo", h:"The Arctic 'ghost ship' spotted drifting, empty and intact, for over 40 years after its crew abandoned it."}
+];
+
+const CAT_ABBR = {
+  "Psychology & Connection":"PSYCH & HUMAN NATURE",
+  "Wild History & Lore":"WILD HISTORY & LORE",
+  "Date Night & Connection":"DATE NIGHT & CONNECTION",
+  "Aesthetic Hobbies":"AESTHETIC & NICHE HOBBIES",
+  "Culture & Curiosities":"CONVO STARTER / CULTURE"
+};
+
+const SPRINT_SECONDS = 30 * 60;
+const LS_PROFILES = "rabbitHoleProfiles";
+const LS_ACTIVE_PROFILE = "rabbitHoleActiveProfileId";
+const LS_ARCHIVE_PREFIX = "rabbitHoleArchive_";
+const LS_SESSION_PREFIX = "rabbitHoleSession_";
+
+const NAME_ADJ = ["Gilded","Restless","Feral","Velvet","Midnight","Amber","Hollow","Quiet","Crimson","Ember","Wandering","Static","Lucid","Rusted","Electric","Nomad","Faded","Wild","Silver","Obsidian"];
+const NAME_NOUN = ["Magpie","Comet","Raven","Fox","Wolf","Lantern","Atlas","Oracle","Echo","Compass","Moth","Nettle","Falcon","Tide","Ash","Prism","Vulture","Kestrel","Nova","Warren"];
+function generateProfileName(){
+  const a = NAME_ADJ[Math.floor(Math.random()*NAME_ADJ.length)];
+  const n = NAME_NOUN[Math.floor(Math.random()*NAME_NOUN.length)];
+  return `${a} ${n}`;
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+function fmtTime(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec/60).toString().padStart(2,"0");
+  const s = Math.floor(sec%60).toString().padStart(2,"0");
+  return m+":"+s;
+}
+function fmtDate(ts){
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+}
+function jumpLinks(topic){
+  const q = encodeURIComponent(topic);
+  return [
+    {name:"Google Scholar", desc:"Peer-reviewed papers", url:`https://scholar.google.com/scholar?q=${q}`},
+    {name:"JSTOR", desc:"Academic archive", url:`https://www.jstor.org/action/doBasicSearch?Query=${q}`},
+    {name:"Internet Archive", desc:"Books & primary docs", url:`https://archive.org/search?query=${q}`},
+    {name:"Wikipedia", desc:"Starting point only", url:`https://en.wikipedia.org/wiki/Special:Search?search=${q}`}
+  ];
+}
+function mdToHtml(md){
+  if(!md) return "";
+  let esc = md.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  esc = esc.replace(/^### (.*)$/gm,"<h3>$1</h3>")
+            .replace(/^## (.*)$/gm,"<h2>$1</h2>")
+            .replace(/^# (.*)$/gm,"<h1>$1</h1>")
+            .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+            .replace(/\*(.+?)\*/g,"<em>$1</em>")
+            .replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+            .replace(/^- (.*)$/gm,"<li>$1</li>");
+  esc = esc.replace(/(<li>.*<\/li>)/gs, m => "<ul>"+m+"</ul>");
+  esc = esc.split(/\n{2,}/).map(block=>{
+    if(/^<h[1-3]>|^<ul>/.test(block.trim())) return block;
+    return block.trim() ? `<p>${block.replace(/\n/g,"<br>")}</p>` : "";
+  }).join("");
+  return esc;
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ============================================================
+   Spiral SVG — signature element
+   ============================================================ */
+function buildSpiral(){
+  const svg = document.getElementById("spiralSvg");
+  const cx=230, cy=230;
+  let path = `M ${cx} ${cy}`;
+  const dots = [];
+  const turns = 4.2, steps = 260, maxR = 200;
+  for(let i=1;i<=steps;i++){
+    const t = i/steps;
+    const angle = turns * 2*Math.PI * t;
+    const r = maxR * t;
+    const x = cx + r*Math.cos(angle);
+    const y = cy + r*Math.sin(angle);
+    path += ` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+    if(i % 14 === 0){ dots.push({x,y}); }
+  }
+  let inner = `<path class="spiral-path" d="${path}"></path>`;
+  dots.forEach((d,i)=>{
+    const r = 2 + (i%3);
+    inner += `<circle class="spiral-dot ${i%2===0?'pulse':''}" cx="${d.x.toFixed(1)}" cy="${d.y.toFixed(1)}" r="${r}"></circle>`;
+  });
+  svg.innerHTML = inner;
+}
+
+/* ============================================================
+   App state
+   ============================================================ */
+const App = {
+  currentTopic: null,
+  timer: { remaining: SPRINT_SECONDS, running:false, startedAt:null, endsAt:null },
+  timerHandle: null,
+  archive: [],
+  activeNotes: { takeaway:"", fact:"", sources:"", body:"" },
+  profiles: [],
+  activeProfileId: null,
+
+  init(){
+    buildSpiral();
+    document.getElementById("footerYear").textContent = new Date().getFullYear();
+    this.loadProfiles();
+    this.bindEvents();
+
+    if(this.activeProfileId){
+      this.enterProfile(this.activeProfileId, {skipModalClose:true});
+    } else {
+      this.renderProfileModal();
+      this.openProfileModal({forced:true});
+    }
+
+    document.getElementById("topicCount").textContent = `${TOPICS.length} topics loaded`;
+  },
+
+  bindEvents(){
+    document.querySelectorAll(".navlink").forEach(btn=>{
+      btn.addEventListener("click", ()=> this.showView(btn.dataset.nav));
+    });
+    document.getElementById("rollBtn").addEventListener("click", ()=> this.roll());
+    document.getElementById("rollAgainBtn").addEventListener("click", ()=> this.roll());
+    document.getElementById("startResearchBtn").addEventListener("click", ()=> this.startSprint());
+
+    document.getElementById("timerPauseBtn").addEventListener("click", ()=> this.toggleTimer());
+    document.getElementById("timerResetBtn").addEventListener("click", ()=> this.resetTimer());
+    document.getElementById("timerFinishBtn").addEventListener("click", ()=> this.finishSprint());
+
+    ["fieldTakeaway","fieldFact","fieldSources","notesFreeform"].forEach(id=>{
+      document.getElementById(id).addEventListener("input", ()=> this.autoSaveNotes());
+    });
+
+    document.getElementById("toggleWriteBtn").addEventListener("click", ()=> this.setNotesMode("write"));
+    document.getElementById("togglePreviewBtn").addEventListener("click", ()=> this.setNotesMode("preview"));
+    document.getElementById("copyMdBtn").addEventListener("click", ()=> this.copyMarkdown());
+    document.getElementById("downloadMdBtn").addEventListener("click", ()=> this.downloadMarkdown());
+
+    document.getElementById("vaultSearch").addEventListener("input", (e)=> this.renderVault(e.target.value));
+    document.getElementById("vaultDetail").addEventListener("click", (e)=>{
+      if(e.target.id === "vaultDetail") this.closeDetail();
+    });
+
+    document.getElementById("profilePillBtn").addEventListener("click", ()=>{
+      this.renderProfileModal();
+      this.openProfileModal({forced:false});
+    });
+    document.getElementById("closeProfileModalBtn").addEventListener("click", ()=> this.closeProfileModal());
+    document.getElementById("shuffleNameBtn").addEventListener("click", ()=>{
+      document.getElementById("newProfileInput").value = generateProfileName();
+    });
+    document.getElementById("createProfileBtn").addEventListener("click", ()=> this.handleCreateProfile());
+    document.getElementById("newProfileInput").addEventListener("keydown", (e)=>{
+      if(e.key === "Enter") this.handleCreateProfile();
+    });
+    document.getElementById("profileModal").addEventListener("click", (e)=>{
+      if(e.target.id === "profileModal" && !this.forcedProfileModal) this.closeProfileModal();
+    });
+  },
+
+  showView(name){
+    document.querySelectorAll(".view").forEach(v=> v.classList.remove("is-active"));
+    document.getElementById("view-"+name).classList.add("is-active");
+    document.querySelectorAll(".navlink").forEach(b=> b.classList.toggle("is-active", b.dataset.nav===name));
+    window.scrollTo({top:0, behavior:"instant" in window ? "instant":"auto"});
+    if(name==="vault") this.renderVault(document.getElementById("vaultSearch").value);
+  },
+
+  roll(){
+    const svg = document.getElementById("spiralSvg");
+    let pool = TOPICS;
+    if(this.currentTopic){
+      pool = TOPICS.filter(x=> x.t !== this.currentTopic.t);
+    }
+    const topic = pool[Math.floor(Math.random()*pool.length)];
+    this.currentTopic = topic;
+
+    svg.classList.remove("spinning"); void svg.offsetWidth; svg.classList.add("spinning");
+    setTimeout(()=>{
+      svg.classList.remove("spinning");
+      buildSpiral();
+      this.renderCard(topic);
+      this.showView("card");
+    }, 420);
+  },
+
+  renderCard(topic){
+    document.getElementById("cardCategory").textContent = "[ " + CAT_ABBR[topic.cat] + " ]";
+    document.getElementById("cardTitle").textContent = topic.t;
+    document.getElementById("cardHook").textContent = topic.h;
+    const grid = document.getElementById("jumpGrid");
+    grid.innerHTML = "";
+    jumpLinks(topic.t).forEach(l=>{
+      const a = document.createElement("a");
+      a.className = "jump-link"; a.href = l.url; a.target="_blank"; a.rel="noopener";
+      a.innerHTML = `<span class="jl-name">${l.name}</span><span class="jl-desc">${l.desc}</span>`;
+      grid.appendChild(a);
+    });
+  },
+
+  startSprint(){
+    if(!this.currentTopic) return;
+    this.timer = { remaining: SPRINT_SECONDS, running:true, startedAt:Date.now(), endsAt: Date.now()+SPRINT_SECONDS*1000 };
+    this.activeNotes = { takeaway:"", fact:"", sources:"", body:"" };
+    document.getElementById("fieldTakeaway").value="";
+    document.getElementById("fieldFact").value="";
+    document.getElementById("fieldSources").value="";
+    document.getElementById("notesFreeform").value="";
+    this.setNotesMode("write");
+    this.renderSprintTopic();
+    this.persistSession();
+    this.showView("sprint");
+    this.runTimerLoop();
+  },
+
+  renderSprintTopic(){
+    const topic = this.currentTopic;
+    document.getElementById("sprintCategory").textContent = "[ " + CAT_ABBR[topic.cat] + " ]";
+    document.getElementById("sprintTitle").textContent = topic.t;
+    document.getElementById("sprintHook").textContent = topic.h;
+    const wrap = document.getElementById("sprintLinks");
+    wrap.innerHTML = "";
+    jumpLinks(topic.t).forEach(l=>{
+      const a = document.createElement("a");
+      a.className="mini-link"; a.href=l.url; a.target="_blank"; a.rel="noopener";
+      a.textContent = l.name;
+      wrap.appendChild(a);
+    });
+  },
+
+  runTimerLoop(){
+    clearInterval(this.timerHandle);
+    this.timerHandle = setInterval(()=> this.tickTimer(), 250);
+    this.tickTimer();
+  },
+
+  tickTimer(){
+    const ringEl = document.getElementById("ringProgress");
+    const r = 100, circ = 2*Math.PI*r;
+    ringEl.style.strokeDasharray = circ;
+
+    if(this.timer.running){
+      this.timer.remaining = Math.max(0, (this.timer.endsAt - Date.now())/1000);
+    }
+    document.getElementById("timerDigits").textContent = fmtTime(this.timer.remaining);
+    const frac = this.timer.remaining / SPRINT_SECONDS;
+    ringEl.style.strokeDashoffset = circ * (1-frac);
+    document.getElementById("timerState").textContent = this.timer.running ? "Sprinting" : (this.timer.remaining<=0 ? "Complete" : "Paused");
+    document.getElementById("timerPauseBtn").textContent = this.timer.running ? "Pause" : "Resume";
+
+    if(this.timer.remaining <= 0 && this.timer.running){
+      this.timer.running = false;
+      clearInterval(this.timerHandle);
+      document.getElementById("timerState").textContent = "Complete";
+    }
+  },
+
+  toggleTimer(){
+    if(this.timer.remaining<=0) return;
+    if(this.timer.running){
+      this.timer.running = false;
+      this.timer.remaining = Math.max(0,(this.timer.endsAt - Date.now())/1000);
+    } else {
+      this.timer.running = true;
+      this.timer.endsAt = Date.now() + this.timer.remaining*1000;
+      this.runTimerLoop();
+    }
+    this.persistSession();
+    this.tickTimer();
+  },
+
+  resetTimer(){
+    this.timer = { remaining: SPRINT_SECONDS, running:false, startedAt:null, endsAt:null };
+    clearInterval(this.timerHandle);
+    this.tickTimer();
+    this.persistSession();
+  },
+
+  finishSprint(){
+    clearInterval(this.timerHandle);
+    const elapsed = SPRINT_SECONDS - this.timer.remaining;
+    this.saveSession(Math.max(30, Math.round(elapsed)));
+    this.resetTimer();
+    localStorage.removeItem(LS_SESSION_PREFIX + this.activeProfileId);
+    this.showView("vault");
+  },
+
+  setNotesMode(mode){
+    const writeBtn = document.getElementById("toggleWriteBtn");
+    const previewBtn = document.getElementById("togglePreviewBtn");
+    const ta = document.getElementById("notesFreeform");
+    const pv = document.getElementById("notesPreview");
+    if(mode==="preview"){
+      pv.innerHTML = mdToHtml(ta.value);
+      pv.classList.add("is-active"); ta.classList.add("is-hidden");
+      previewBtn.classList.add("is-on"); writeBtn.classList.remove("is-on");
+    } else {
+      pv.classList.remove("is-active"); ta.classList.remove("is-hidden");
+      writeBtn.classList.add("is-on"); previewBtn.classList.remove("is-on");
+    }
+  },
+
+  autoSaveNotes(){
+    this.activeNotes = {
+      takeaway: document.getElementById("fieldTakeaway").value,
+      fact: document.getElementById("fieldFact").value,
+      sources: document.getElementById("fieldSources").value,
+      body: document.getElementById("notesFreeform").value
+    };
+    this.persistSession();
+    const flag = document.getElementById("savedFlag");
+    flag.textContent = "Saved " + new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    flag.classList.add("on");
+  },
+
+  buildMarkdownExport(){
+    const topic = this.currentTopic || {t:"Untitled", cat:""};
+    const n = this.activeNotes;
+    return `# ${topic.t}\n_${CAT_ABBR[topic.cat]||""}_\n\n## Key Takeaway\n${n.takeaway||"—"}\n\n## Coolest Fact\n${n.fact||"—"}\n\n## Sources Found\n${n.sources||"—"}\n\n## Notes\n${n.body||"—"}\n`;
+  },
+
+  copyMarkdown(){
+    const text = this.buildMarkdownExport();
+    navigator.clipboard?.writeText(text).then(()=>{
+      const btn = document.getElementById("copyMdBtn");
+      const old = btn.textContent; btn.textContent = "Copied";
+      setTimeout(()=> btn.textContent = old, 1200);
+    }).catch(()=>{});
+  },
+
+  downloadMarkdown(){
+    const text = this.buildMarkdownExport();
+    const topic = this.currentTopic ? this.currentTopic.t : "notes";
+    const blob = new Blob([text], {type:"text/markdown"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = topic.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,50) + ".md";
+    document.body.appendChild(a); a.click(); a.remove();
+  },
+
+  saveSession(durationSec){
+    this.autoSaveNotes();
+    const entry = {
+      id: uid(),
+      topic: this.currentTopic.t,
+      cat: this.currentTopic.cat,
+      hook: this.currentTopic.h,
+      date: Date.now(),
+      duration: durationSec,
+      notes: { ...this.activeNotes }
+    };
+    this.archive.unshift(entry);
+    localStorage.setItem(LS_ARCHIVE_PREFIX + this.activeProfileId, JSON.stringify(this.archive));
+  },
+
+  loadArchive(){
+    if(!this.activeProfileId){ this.archive = []; return; }
+    try{ this.archive = JSON.parse(localStorage.getItem(LS_ARCHIVE_PREFIX + this.activeProfileId)) || []; }
+    catch(e){ this.archive = []; }
+  },
+
+  persistSession(){
+    if(!this.currentTopic || !this.activeProfileId) return;
+    localStorage.setItem(LS_SESSION_PREFIX + this.activeProfileId, JSON.stringify({
+      topic: this.currentTopic, timer: this.timer, notes: this.activeNotes
+    }));
+  },
+
+  restoreSession(){
+    if(!this.activeProfileId) return;
+    try{
+      const raw = JSON.parse(localStorage.getItem(LS_SESSION_PREFIX + this.activeProfileId));
+      if(!raw) return;
+      this.currentTopic = raw.topic;
+      this.activeNotes = raw.notes || {takeaway:"",fact:"",sources:"",body:""};
+      this.timer = raw.timer || {remaining:SPRINT_SECONDS,running:false};
+      if(this.timer.running && this.timer.endsAt){
+        this.timer.remaining = Math.max(0,(this.timer.endsAt - Date.now())/1000);
+        if(this.timer.remaining<=0) this.timer.running=false;
+      }
+      document.getElementById("fieldTakeaway").value = this.activeNotes.takeaway||"";
+      document.getElementById("fieldFact").value = this.activeNotes.fact||"";
+      document.getElementById("fieldSources").value = this.activeNotes.sources||"";
+      document.getElementById("notesFreeform").value = this.activeNotes.body||"";
+      this.renderSprintTopic();
+      this.runTimerLoop();
+      if(this.timer.remaining>0) this.showView("sprint");
+    }catch(e){}
+  },
+
+  renderVault(filter=""){
+    const label = document.getElementById("vaultProfileLabel");
+    const activeProfile = this.profiles.find(p=> p.id===this.activeProfileId);
+    if(label) label.textContent = activeProfile ? `Profile — ${activeProfile.name}` : "Profile";
+    const wrap = document.getElementById("vaultListWrap");
+    const q = filter.trim().toLowerCase();
+    const items = this.archive.filter(e=>{
+      if(!q) return true;
+      const blob = [e.topic,e.cat,e.notes?.takeaway,e.notes?.fact,e.notes?.sources,e.notes?.body].join(" ").toLowerCase();
+      return blob.includes(q);
+    });
+    if(items.length===0){
+      wrap.innerHTML = `<div class="vault-empty">${this.archive.length===0 ? "No sessions yet — roll a topic and start a sprint." : "No sessions match that search."}</div>`;
+      return;
+    }
+    const list = document.createElement("div");
+    list.className = "vault-list";
+    items.forEach(entry=>{
+      const row = document.createElement("div");
+      row.className = "vault-item";
+      row.innerHTML = `
+        <span class="tag">${CAT_ABBR[entry.cat]||""}</span>
+        <div>
+          <div class="vi-title">${entry.topic}</div>
+        </div>
+        <div class="vi-meta"><span>${fmtDate(entry.date)}</span><span>${fmtTime(entry.duration)}</span></div>
+        <button class="vi-del" data-id="${entry.id}">Delete</button>
+      `;
+      row.addEventListener("click", (e)=>{
+        if(e.target.closest(".vi-del")) return;
+        this.openDetail(entry);
+      });
+      row.querySelector(".vi-del").addEventListener("click", (e)=>{
+        e.stopPropagation();
+        this.archive = this.archive.filter(x=> x.id!==entry.id);
+        localStorage.setItem(LS_ARCHIVE_PREFIX + this.activeProfileId, JSON.stringify(this.archive));
+        this.renderVault(filter);
+      });
+      list.appendChild(row);
+    });
+    wrap.innerHTML = "";
+    wrap.appendChild(list);
+  },
+
+  openDetail(entry){
+    const panel = document.getElementById("vaultDetailPanel");
+    panel.innerHTML = `
+      <button class="vd-close" id="vdCloseBtn">Close</button>
+      <span class="tag" style="width:fit-content;color:var(--lava);border-color:var(--lava);">${CAT_ABBR[entry.cat]||""}</span>
+      <h3 class="vd-title">${entry.topic}</h3>
+      <div class="vd-meta">${fmtDate(entry.date)} · ${fmtTime(entry.duration)} logged</div>
+      <div class="vd-block"><span class="vd-label">Key Takeaway</span><div class="vd-text">${entry.notes?.takeaway || "—"}</div></div>
+      <div class="vd-block"><span class="vd-label">Coolest Fact</span><div class="vd-text">${entry.notes?.fact || "—"}</div></div>
+      <div class="vd-block"><span class="vd-label">Sources Found</span><div class="vd-text">${entry.notes?.sources || "—"}</div></div>
+      <div class="vd-block"><span class="vd-label">Notes</span><div class="vd-text">${entry.notes?.body || "—"}</div></div>
+    `;
+    document.getElementById("vdCloseBtn").addEventListener("click", ()=> this.closeDetail());
+    document.getElementById("vaultDetail").classList.add("is-open");
+  },
+  closeDetail(){ document.getElementById("vaultDetail").classList.remove("is-open"); },
+
+  /* ---------- profiles ---------- */
+  loadProfiles(){
+    try{ this.profiles = JSON.parse(localStorage.getItem(LS_PROFILES)) || []; }
+    catch(e){ this.profiles = []; }
+    this.activeProfileId = localStorage.getItem(LS_ACTIVE_PROFILE) || null;
+    if(this.activeProfileId && !this.profiles.some(p=> p.id===this.activeProfileId)){
+      this.activeProfileId = null;
+    }
+  },
+
+  saveProfiles(){
+    localStorage.setItem(LS_PROFILES, JSON.stringify(this.profiles));
+  },
+
+  handleCreateProfile(){
+    const input = document.getElementById("newProfileInput");
+    let name = input.value.trim();
+    if(!name) name = generateProfileName();
+    if(name.length > 28) name = name.slice(0,28);
+    const profile = { id: uid(), name, createdAt: Date.now() };
+    this.profiles.unshift(profile);
+    this.saveProfiles();
+    input.value = "";
+    this.enterProfile(profile.id);
+  },
+
+  enterProfile(id, opts={}){
+    this.activeProfileId = id;
+    localStorage.setItem(LS_ACTIVE_PROFILE, id);
+    clearInterval(this.timerHandle);
+    this.currentTopic = null;
+    this.timer = { remaining: SPRINT_SECONDS, running:false, startedAt:null, endsAt:null };
+    this.loadArchive();
+    this.restoreSession();
+    this.updateProfilePill();
+    this.renderVault();
+    if(!opts.skipModalClose) this.closeProfileModal();
+    if(!this.timer.running || this.timer.remaining<=0) this.showView("roll");
+  },
+
+  updateProfilePill(){
+    const profile = this.profiles.find(p=> p.id===this.activeProfileId);
+    document.getElementById("profilePillName").textContent = profile ? profile.name : "Profile";
+  },
+
+  deleteProfile(id){
+    if(!confirm("Delete this profile and everything in its vault? This can't be undone.")) return;
+    this.profiles = this.profiles.filter(p=> p.id!==id);
+    this.saveProfiles();
+    localStorage.removeItem(LS_ARCHIVE_PREFIX + id);
+    localStorage.removeItem(LS_SESSION_PREFIX + id);
+    if(this.activeProfileId === id){
+      this.activeProfileId = null;
+      localStorage.removeItem(LS_ACTIVE_PROFILE);
+      if(this.profiles.length){
+        this.enterProfile(this.profiles[0].id, {skipModalClose:true});
+      } else {
+        this.archive = [];
+        this.updateProfilePill();
+      }
+    }
+    this.renderProfileModal();
+    if(!this.activeProfileId) this.openProfileModal({forced:true});
+  },
+
+  renderProfileModal(){
+    const list = document.getElementById("profileList");
+    if(this.profiles.length === 0){
+      list.innerHTML = `<div class="pm-empty">No profiles yet. Create the first one below.</div>`;
+    } else {
+      list.innerHTML = "";
+      this.profiles.forEach(p=>{
+        const row = document.createElement("div");
+        row.className = "profile-row";
+        const isActive = p.id === this.activeProfileId;
+        row.innerHTML = `
+          <span class="pr-name">${isActive ? '<span class="pr-active-dot"></span>' : ''}${p.name}</span>
+          <span class="pr-meta">${fmtDate(p.createdAt)}</span>
+          <button class="pr-del" data-id="${p.id}">Delete</button>
+        `;
+        row.addEventListener("click", (e)=>{
+          if(e.target.closest(".pr-del")) return;
+          this.enterProfile(p.id);
+        });
+        row.querySelector(".pr-del").addEventListener("click", (e)=>{
+          e.stopPropagation();
+          this.deleteProfile(p.id);
+        });
+        list.appendChild(row);
+      });
+    }
+    document.getElementById("newProfileInput").value = "";
+    document.getElementById("newProfileInput").placeholder = generateProfileName();
+  },
+
+  openProfileModal(opts={}){
+    this.forcedProfileModal = !!opts.forced;
+    document.getElementById("closeProfileModalBtn").style.display = opts.forced ? "none" : "";
+    document.getElementById("profileModal").classList.add("is-open");
+  },
+
+  closeProfileModal(){
+    if(this.forcedProfileModal) return;
+    document.getElementById("profileModal").classList.remove("is-open");
+  }
+};
+
+document.addEventListener("DOMContentLoaded", ()=> App.init());
+</script>
+</body>
+</html>
