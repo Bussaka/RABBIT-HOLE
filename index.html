@@ -174,7 +174,9 @@ h1,h2,h3{ font-family:var(--display); text-transform:uppercase; line-height:.98;
 .pm-empty{ font-family:var(--mono); font-size:11px; color:var(--ink-35); padding:10px 0; }
 .pm-create{ display:flex; flex-direction:column; gap:12px; }
 .pm-create-row{ display:flex; gap:10px; }
-.pm-input{ flex:1; }
+.pm-input{ flex:1; color:var(--stark); border-color:var(--ink-12); }
+.pm-input::placeholder{ color:var(--ink-35); }
+.pm-input:focus{ border-color:var(--stark); }
 .pm-create-actions{ display:flex; gap:10px; flex-wrap:wrap; }
 
 main{ flex:1; }
